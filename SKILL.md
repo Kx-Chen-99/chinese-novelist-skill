@@ -40,7 +40,7 @@ metadata:
 
 ### 第二阶段：规划 + 二次确认
 
-创建项目文件夹（`./chinese-novelist/{timestamp}-{小说名称}/`），生成大纲、人物档案和写作计划JSON，等待用户确认。 → 详见 [phase2-planning.md](references/flows/phase2-planning.md)
+在创建项目前先询问用户存放地址（默认推荐 `./小说/{小说名称}/`，文件夹名仅保留小说名，不带时间戳），并在项目下创建 `正文/` 子文件夹统一存放所有章节正文；生成大纲、人物档案和写作计划JSON，等待用户确认。 → 详见 [phase2-planning.md](references/flows/phase2-planning.md)
 
 ### 第2.5步：写作模式选择
 

@@ -28,7 +28,7 @@
 
 ## 4. 中断续写检测
 
-扫描 `./chinese-novelist/` 目录下的项目文件夹：
+扫描 `./小说/` 及 `./chinese-novelist/` 目录下的项目文件夹：
 
 - 查找含 `02-写作计划.json` 且 `status` 为 `"in_progress"` 或 `"validating"` 的项目
 - 如果找到未完成项目：

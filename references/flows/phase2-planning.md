@@ -4,7 +4,7 @@
 
 执行以下步骤：
 
-1. **创建项目文件夹**：`./chinese-novelist/{YYYYMMDD-HHmmss}-{Layer 3 确认的标题}/`（相对当前工作目录，使用用户在 Layer 3 选定的小说标题）
+1. **询问存放地址并创建项目文件夹**：在创建项目前，先使用 `AskUserQuestion`（或直接询问）向用户确认小说项目的存放目录（默认推荐 `./小说/{Layer 3 确认的标题}/`，文件夹名**只保留小说名，不带时间戳**）。同时在项目文件夹内创建 `正文/` 子文件夹，所有章节正文文件统一存放在 `正文/` 目录下。
 2. **生成人物档案**：创建 `00-人物档案.md`，使用 [character-template.md](../guides/character-template.md) 模板，参考 [character-building.md](../guides/character-building.md) 创建主角、反派、配角档案。**人物档案必须详细**：每个角色的性格核心、致命缺陷、说话风格/口头禅、恐惧/弱项、背景故事都要具体到可以直接指导写作的程度
 3. **生成大纲**：创建 `01-大纲.md`，使用 [outline-template.md](../guides/outline-template.md) 模板，参考 [plot-structures.md](../guides/plot-structures.md) 填入完整的章节规划。**大纲必须以人物驱动情节** 参照 `00-人物档案.md`，确保情节服务于人物成长弧线
 3.5. **生成文风基准**：创建 `03-文风基准.md`，包含四部分：
@@ -17,7 +17,7 @@
    {
      "version": 1,
      "novelName": "[小说名称]",
-     "projectPath": "./chinese-novelist/{timestamp}-[小说名称]",
+     "projectPath": "./小说/[小说名称]",
      "totalChapters": [章节数],
      "minWordsPerChapter": 3000,
      "createdAt": "[ISO时间]",
@@ -28,7 +28,7 @@
        {
          "chapterNumber": 1,
          "title": "[章节标题]",
-         "filePath": "第01章-[章节标题].md",
+         "filePath": "正文/第01章-[章节标题].md",
          "status": "pending",
          "wordCount": null,
          "wordCountPass": null,
