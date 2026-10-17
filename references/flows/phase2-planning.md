@@ -20,10 +20,11 @@
      "projectPath": "./小说/[小说名称]",
      "totalChapters": [章节数],
      "minWordsPerChapter": 3000,
+     "maxWordsPerChapter": null,
      "createdAt": "[ISO时间]",
      "updatedAt": "[ISO时间]",
      "status": "planning",
-     "writingMode": "[serial|subagent-parallel|agent-teams]",
+     "writingMode": "[serial|subagent-parallel|agent-teams|viral-short-12k]",
      "chapters": [
        {
          "chapterNumber": 1,
@@ -37,6 +38,12 @@
      ]
    }
    ```
+
+   > **🔥 12000字一镜到底爆款短篇模式（`viral-short-12k`）专属规划规则**：
+   > 当用户在 Q8 选择「12000字一镜到底爆款短篇」时：
+   > - `01-大纲.md` 采用**三幕精确规划**（第一幕 2000字：前200字强钩子+人物建立+推动事件；第二幕 8500字：多线发展+6000字中点重大转折+困境升级+3~4个情感爆点；第三幕 1500字：高潮对决+最后1000字终极揭示+多重收束+价值升华），并规划好 3 个大悬念与每 800 字一个的小悬念节奏点。
+   > - `02-写作计划.json` 中设置 `"totalChapters": 1`、`"minWordsPerChapter": 11500`、`"maxWordsPerChapter": 12500`、`"writingMode": "viral-short-12k"`，单章 `filePath` 设为 `"正文/全文.md"`。
+   > - 确认规划后无需再询问串行/并行模式，直接进入第三阶段的「12000字一镜到底爆款短篇模式」创作。
 
 完成后，执行以下两步：
 

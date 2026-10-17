@@ -52,7 +52,7 @@ def extract_content_from_chapter(file_path: Path) -> str:
     return main_content
 
 
-def check_chapter(file_path: str, min_words: int = 3000) -> dict:
+def check_chapter(file_path: str, min_words: int = 3000, max_words: int = None) -> dict:
     """检查单个章节的字数"""
     path = Path(file_path)
 
@@ -68,10 +68,20 @@ def check_chapter(file_path: str, min_words: int = 3000) -> dict:
     main_content = extract_content_from_chapter(path)
     word_count = count_chinese_words(main_content)
 
-    status = 'pass' if word_count >= min_words else 'fail'
-    message = f'字数: {word_count}' + (
-        f' (✓ 达标)' if word_count >= min_words else f' (✗ 不足，需要至少 {min_words} 字)'
-    )
+    if max_words is not None:
+        passed = min_words <= word_count <= max_words
+        status = 'pass' if passed else 'fail'
+        if passed:
+            message = f'字数: {word_count} (✓ 达标，位于 {min_words}-{max_words} 区间)'
+        elif word_count < min_words:
+            message = f'字数: {word_count} (✗ 不足，需要 {min_words}-{max_words} 字)'
+        else:
+            message = f'字数: {word_count} (✗ 超出上限，需要 {min_words}-{max_words} 字)'
+    else:
+        status = 'pass' if word_count >= min_words else 'fail'
+        message = f'字数: {word_count}' + (
+            f' (✓ 达标)' if word_count >= min_words else f' (✗ 不足，需要至少 {min_words} 字)'
+        )
 
     return {
         'file': str(path),
@@ -90,6 +100,8 @@ def check_all_chapters(directory: str, pattern: str = '第*.md', min_words: int 
         return []
 
     chapter_files = sorted(dir_path.glob(pattern))
+    if not chapter_files and (dir_path / '正文').exists():
+        chapter_files = sorted((dir_path / '正文').glob(pattern))
     results = []
 
     for chapter_file in chapter_files:
@@ -170,7 +182,8 @@ def main():
     else:
         file_path = sys.argv[1]
         min_words = int(sys.argv[2]) if len(sys.argv) > 2 else 3000
-        result = check_chapter(file_path, min_words)
+        max_words = int(sys.argv[3]) if len(sys.argv) > 3 else None
+        result = check_chapter(file_path, min_words, max_words)
         print_results([result], min_words)
 
 
