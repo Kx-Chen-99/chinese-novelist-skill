@@ -201,7 +201,7 @@ def main():
         print('')
         print('示例:')
         print('  python check_chapter_wordcount.py novels/故事/正文/第01章.md')
-        print('  python check_chapter_wordcount.py novels/故事/正文/全文.md 11500 12500 --json')
+        print('  python check_chapter_wordcount.py novels/故事/故事.md 11500 12500 --json')
         print('  python check_chapter_wordcount.py --all novels/故事 --json')
         sys.exit(2)
 

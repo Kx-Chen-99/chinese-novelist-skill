@@ -133,8 +133,12 @@ python {skillBaseDir}/scripts/check_chapter_wordcount.py ./小说/[小说名称]
 # 检查所有章节（按章号数值排序，自动支持目录或目录下的 正文/ 子目录）
 python {skillBaseDir}/scripts/check_chapter_wordcount.py --all ./小说/[小说名称]/ --json
 
-# 自定义最小字数与最大字数（如 12000 字爆款短篇区间 11500-12500）
-python {skillBaseDir}/scripts/check_chapter_wordcount.py ./小说/[小说名称]/正文/全文.md 11500 12500 --json
+# 自定义最小字数与最大字数（如 12000 字爆款短篇区间 11500-12500，单文件短篇直接存放在小说名目录下）
+python {skillBaseDir}/scripts/check_chapter_wordcount.py ./小说/[小说名称]/[小说名称].md 11500 12500 --json
+
+# 将论坛体 Markdown 渲染为小红书 3:4 (1125x1500) 手绘草稿风高清图片（调整UI/色系时必先加 --first-only 预览1张，确认后再全量生成）
+node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange --first-only
+node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange
 ```
 
 ### 退出码
