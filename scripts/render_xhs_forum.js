@@ -408,17 +408,9 @@ function renderFloorSliceHTML(floor, slice, theme) {
     roleClass = 'role-special';
     badgeHTML = '<span class="sketch-stamp stamp-special">刚注册</span>';
   } else {
+    // 匿名用户后面绝不显示任何身份/部门 tag
     roleClass = 'role-anon';
-    const firstPara = (slice.paragraphs && slice.paragraphs[0]) || '';
-    if (floor.numInt === 22 || firstPara.includes('我是22楼')) {
-      badgeHTML = '<span class="sketch-stamp stamp-note">同组同事</span>';
-    } else if (firstPara.includes('后勤装备处')) {
-      badgeHTML = '<span class="sketch-stamp stamp-note">装备处</span>';
-    } else if (firstPara.includes('匹配中心归档处')) {
-      badgeHTML = '<span class="sketch-stamp stamp-note">匹配中心</span>';
-    } else if (firstPara.includes('作战科的老队员')) {
-      badgeHTML = '<span class="sketch-stamp stamp-note">作战科</span>';
-    }
+    badgeHTML = '';
   }
 
   const avatarSVG = getHandDrawnAvatarSVG(floor, theme);
@@ -1103,9 +1095,14 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
     preset.cardGap
   );
   const totalPages = pages.length;
-  const maxPagesLimit = options.onlyFirstPage ? 1 : totalPages;
+  const targetIndices = options.pageNum
+    ? [Math.max(0, Math.min(totalPages - 1, options.pageNum - 1))]
+    : options.onlyFirstPage
+      ? [0]
+      : pages.map((_, i) => i);
 
-  const cardsHTMLList = pages.slice(0, maxPagesLimit).map((p, pageIdx) => {
+  const cardsHTMLList = targetIndices.map((pageIdx) => {
+    const p = pages[pageIdx];
     const isPage1 = pageIdx === 0;
     const pageNumStr = String(pageIdx + 1).padStart(2, '0');
     const totalNumStr = String(totalPages).padStart(2, '0');
@@ -1166,7 +1163,8 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
     `;
   });
 
-  if (!options.onlyFirstPage) {
+  const isPartialRender = Boolean(options.onlyFirstPage || options.pageNum);
+  if (!isPartialRender) {
     for (const existingFile of fs.readdirSync(outDir)) {
       if (/^\d+\.png$/.test(existingFile)) {
         fs.unlinkSync(path.join(outDir, existingFile));
@@ -1176,6 +1174,7 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
 
   const generatedFiles = [];
   for (let idx = 0; idx < cardsHTMLList.length; idx++) {
+    const realPageNum = targetIndices[idx] + 1;
     const singlePageHTML = `
       <!DOCTYPE html>
       <html>
@@ -1192,14 +1191,14 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
     await page.setContent(singlePageHTML, { waitUntil: 'load' });
     const fileName = options.customPrefix
       ? `${options.customPrefix}.png`
-      : `${String(idx + 1).padStart(2, '0')}.png`;
+      : `${String(realPageNum).padStart(2, '0')}.png`;
     const filePath = path.join(outDir, fileName);
     const cardEl = await page.$('.xhs-card');
     await cardEl.screenshot({ path: filePath });
     generatedFiles.push(filePath);
   }
 
-  if (!options.onlyFirstPage) {
+  if (!isPartialRender) {
     const previewHTMLPath = path.join(outDir, 'preview.html');
     const previewHTML = `
       <!DOCTYPE html>
@@ -1282,6 +1281,7 @@ const options = {
   color: getArgVal('--color='),
   hue: getArgVal('--hue=') !== null ? parseFloat(getArgVal('--hue=')) : null,
   fontSize: getArgVal('--font=') !== null ? parseFloat(getArgVal('--font=')) : null,
+  pageNum: getArgVal('--page=') !== null ? parseInt(getArgVal('--page='), 10) : null,
   random: rawArgs.includes('--random'),
   onlyFirstPage: rawArgs.includes('--first-only'),
   customPrefix: getArgVal('--prefix='),
