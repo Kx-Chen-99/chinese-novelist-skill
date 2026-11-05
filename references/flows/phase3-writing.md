@@ -156,7 +156,7 @@ WHILE 02-写作计划.json 中存在 status != "completed" 的章节:
    - **接地气表达**：拒绝书面套话，禁用“然而、因此、与此同时、综上所述、基于、鉴于、不可否认、毋庸置疑”。
    - **一镜到底呈现**：直接呈现故事内容（可使用数字分节或空行转场），无需输出章节标题或写作说明。
 3. **字数校验闭环**：
-   - 写完后运行：`python {skillBaseDir}/scripts/check_chapter_wordcount.py ./小说/[小说名称]/[小说名称].md 11500 12500 --json`
+   - 写完后运行：`node {skillBaseDir}/scripts/check_chapter_wordcount.mjs ./小说/[小说名称]/[小说名称].md 11500 12500 --json`
    - 确保字数严格落在 **11500 - 12500 字**区间内，随后更新 `02-写作计划.json` 进入第四阶段完成报告。
 
 ---

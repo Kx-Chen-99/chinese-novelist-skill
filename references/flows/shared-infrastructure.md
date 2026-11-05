@@ -99,7 +99,7 @@
 ### 与大纲的关系
 
 - `01-大纲.md`：章节规划（核心事件、悬念钩子、承接上章、出场人物、场景列表）+ 设定与事实词典（设定名词、数字事实、因果源头与伏笔线的首现与揭示跟踪），纯规划文档，不随创作进度膨胀
-- `99-章节摘要.md`：逐章追加的 300-500 字摘要（连贯性参考），每章收尾时写入
+- `99-章节摘要.md`：按章保存约 300–500 字的关键事件与后果、人物当前处境、行动条件及未了事项，每章收尾时写入，改稿更新原记录；写法以 [chapter-checklist.md](chapter-checklist.md) 阶段 D 为准
 - `02-写作计划.json`：章节状态、字数、重试次数、写作模式（机器可读的进度跟踪）
 - Phase 3 创作每章时必须读取 `01-大纲.md` 中对应章节的规划信息，作为创作依据
 - 两者严格对应：JSON 中的 `chapterNumber` 和 `title` 必须与大纲中的章节规划一致
@@ -124,22 +124,30 @@
 
 ## 字数检查脚本
 
-使用 `{skillBaseDir}/scripts/check_chapter_wordcount.py` 检查章节字数。`{skillBaseDir}` 指 SKILL.md 所在的 skill 安装根目录（如 `~/.agents/skills/chinese-novelist`）——脚本不在用户项目内，**必须用 skill 安装目录的绝对路径调用**，禁止写相对路径 `scripts/...`（那只存在于 skill 源码目录，用户项目解析不到）。
+使用 `{skillBaseDir}/scripts/check_chapter_wordcount.mjs` 检查章节字数（Node 脚本，零依赖）。`{skillBaseDir}` 指 SKILL.md 所在的 skill 安装根目录（如 `~/.agents/skills/chinese-novelist`）——脚本不在用户项目内，**必须用 skill 安装目录的绝对路径调用**，禁止写相对路径 `scripts/...`（那只存在于 skill 源码目录，用户项目解析不到）。
 
 ```bash
 # 检查单个章节（--json 输出机读结果，含 word_count 与达标状态）
-python {skillBaseDir}/scripts/check_chapter_wordcount.py ./小说/[小说名称]/正文/第01章-[章节标题].md --json
+node {skillBaseDir}/scripts/check_chapter_wordcount.mjs ./小说/[小说名称]/正文/第01章-[章节标题].md --json
 
 # 检查所有章节（按章号数值排序，自动支持目录或目录下的 正文/ 子目录）
-python {skillBaseDir}/scripts/check_chapter_wordcount.py --all ./小说/[小说名称]/ --json
+node {skillBaseDir}/scripts/check_chapter_wordcount.mjs --all ./小说/[小说名称]/ --json
 
 # 自定义最小字数与最大字数（如 12000 字爆款短篇区间 11500-12500，单文件短篇直接存放在小说名目录下）
-python {skillBaseDir}/scripts/check_chapter_wordcount.py ./小说/[小说名称]/[小说名称].md 11500 12500 --json
+node {skillBaseDir}/scripts/check_chapter_wordcount.mjs ./小说/[小说名称]/[小说名称].md 11500 12500 --json
 
 # 将论坛体 Markdown 渲染为小红书 3:4 (1125x1500) 手绘草稿风高清图片（调整UI/色系时必先加 --first-only 预览1张，确认后再全量生成）
 node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange --first-only
 node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange
 ```
+
+### 环境要求与降级
+
+脚本依赖 Node（≥16；`npx skills add` 安装本 skill 的用户必然已满足）。若调用报 `node: command not found`（Windows 为「'node' 不是内部或外部命令」）：
+
+1. 停止自动检查，提示用户安装 Node.js：<https://nodejs.org/>；
+2. **禁止**改为 Agent 自行阅读章节估算字数——模型计数不可靠，脚本存在的意义就是确定性；
+3. 用户安装前如需继续写作，字数以写作目标为准，并在完稿报告中注明「字数未经脚本校验」。
 
 ### 退出码
 

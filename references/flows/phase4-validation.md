@@ -19,7 +19,7 @@
 1. **文件存在性**：检查 `filePath` 指定的文件是否存在
 2. **字数检查**：使用脚本批量检查（`{skillBaseDir}` 为 skill 安装根目录，见 [shared-infrastructure.md](shared-infrastructure.md)）：
    ```bash
-   python {skillBaseDir}/scripts/check_chapter_wordcount.py --all <项目文件夹路径> --json
+   node {skillBaseDir}/scripts/check_chapter_wordcount.mjs --all <项目文件夹路径> --json
    ```
    退出码：0=全部达标，1=有不达标，2=错误。从 `--json` 输出的 `results[]` 读取各章 `word_count` 与 `status`
    > **番茄短故事（2.5万+中短篇）字数底线**：若项目定位为番茄短故事（2.5万～4万字中短篇，走番茄「短故事」通道），全书总字数必须 **≥ 25000 字**。
