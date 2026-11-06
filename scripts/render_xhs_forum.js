@@ -2581,12 +2581,23 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
 
   await browser.close();
 
-  // 如果指定了 customOutDir 且不同于私密图库目录，自动同步一份到私密图库对应小说文件夹下
-  if (path.resolve(outDir) !== path.resolve(repoNovelDir) && fs.existsSync(defaultRepoRoot)) {
+  // 自动将源小说目录下的 .md 与 .json 文件同步备份到私密图库对应小说文件夹下（确保 md 文件一同上传至 GitHub）
+  const srcNovelDir = path.dirname(absMdPath);
+  if (fs.existsSync(defaultRepoRoot)) {
     fs.mkdirSync(repoNovelDir, { recursive: true });
-    for (const f of fs.readdirSync(outDir)) {
-      if (f.endsWith('.png') || f === 'preview.html') {
-        fs.copyFileSync(path.join(outDir, f), path.join(repoNovelDir, f));
+    if (path.resolve(srcNovelDir) !== path.resolve(repoNovelDir)) {
+      for (const f of fs.readdirSync(srcNovelDir)) {
+        if (f.endsWith('.md') || f.endsWith('.json')) {
+          fs.copyFileSync(path.join(srcNovelDir, f), path.join(repoNovelDir, f));
+        }
+      }
+    }
+    // 如果指定了 customOutDir 且不同于私密图库目录，自动同步图片到私密图库对应小说文件夹下
+    if (path.resolve(outDir) !== path.resolve(repoNovelDir)) {
+      for (const f of fs.readdirSync(outDir)) {
+        if (f.endsWith('.png') || f === 'preview.html') {
+          fs.copyFileSync(path.join(outDir, f), path.join(repoNovelDir, f));
+        }
       }
     }
   }
