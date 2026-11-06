@@ -80,16 +80,16 @@
 | `--random` | **随机生成色系**（基于色彩算法生成全新手绘配色，并输出 `--hue=角度` 供复现） |
 | `--color=#HEX` 或 `--hue=角度` | **自定义任意颜色**（输入任意色号自动推算全套草稿纸、马克笔、阴影与暗色卡） |
 
-### 4. 「先预览 1 张，确认后再全量生成并同步至私密图库」工作流铁律（必守）
-- **论坛体图片统一存放与 GitHub 私密仓库归档规则**：
-  - 所有论坛体小说生成的小红书图片（含 `00-封面.png`、`01.png ~ XX.png` 与 `preview.html`），**统一存放在本地私密图库仓库 `./小红书论坛体图库/{小说名称}/` 对应的文件夹下**（不再散落在 `./小说/{小说名称}/小红书图片/` 下）。
-  - 该目录已绑定 GitHub 私密仓库：`https://github.com/Kx-Chen-99/xhs-forum-images.git`（分支：`main`）。
+### 4. 「先预览 1 张，确认后再全量生成并连同 `.md` 同步至私密图库」工作流铁律（必守）
+- **论坛体图片与 `.md` 原稿统一归档至 GitHub 私密仓库规则**：
+  - 所有论坛体小说生成的小红书图片（含 `00-封面.png`、`01.png ~ XX.png`、`preview.html`）以及小说源目录下的所有 **`.md` 正文/设定文件与 `.json` 文件**，**统一归档在本地私密图库仓库 `./小红书论坛体图库/{小说名称}/` 对应的文件夹下**，并自动上传至 GitHub 私密仓库：`https://github.com/Kx-Chen-99/my-novels.git`（分支：`main`）。
+  - 当某篇作品已发布至小红书或已完结、用户要求删除本地对应文件夹时：先确保其全套图片与 `.md` 文件已 push 到 GitHub 私密仓库 `Kx-Chen-99/my-novels`，随后通过 `git -C "./小红书论坛体图库" sparse-checkout` 将该文件夹从本地检出树中排除并删除 `./小说/{小说名称}/`，既彻底清理本地目录，又确保 GitHub 云端永久保留该作品的完整图文与 `.md` 原稿（后续提交不会误删云端文件）。
 - **两步预览与自动上传流程**：
   1. **第一步（快速预览）**：先带 `--first-only`（或 `--page=N`）参数运行脚本，仅生成 1 张预览图展示给用户确认效果（单页预览不会触发 git push）：
      ```bash
      node {skillBaseDir}/scripts/render_xhs_forum.js "./小说/[小说名称]/[小说名称].md" --theme=warm-orange --first-only --with-cover
      ```
-  2. **第二步（确认后全量导出并自动上传私密仓库）**：待用户明确表示确认满意后，去掉 `--first-only` 运行全量生成；脚本会自动将全套图片输出至 `./小红书论坛体图库/[小说名称]/`，并自动执行 `git add`、`git commit` 与 `git push origin main` 上传至 GitHub 私密仓库 `Kx-Chen-99/xhs-forum-images`：
+  2. **第二步（确认后全量导出并自动上传私密仓库）**：待用户明确表示确认满意后，去掉 `--first-only` 运行全量生成；脚本会自动将全套图片及 `.md`/`.json` 原稿同步至 `./小红书论坛体图库/[小说名称]/`，并自动执行 `git add`、`git commit` 与 `git push origin main` 上传至 GitHub 私密仓库 `Kx-Chen-99/my-novels`：
      ```bash
      node {skillBaseDir}/scripts/render_xhs_forum.js "./小说/[小说名称]/[小说名称].md" --theme=warm-orange --with-cover --push
      ```
