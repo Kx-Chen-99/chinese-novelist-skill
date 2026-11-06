@@ -80,13 +80,16 @@
 | `--random` | **随机生成色系**（基于色彩算法生成全新手绘配色，并输出 `--hue=角度` 供复现） |
 | `--color=#HEX` 或 `--hue=角度` | **自定义任意颜色**（输入任意色号自动推算全套草稿纸、马克笔、阴影与暗色卡） |
 
-### 4. 「先预览 1 张，确认后再全量生成」工作流铁律（必守）
-为避免全量渲染多张高清大图耗时过长，Agent 在生成或调整 UI、切换配色时必须遵守以下两步流程：
-1. **第一步（快速预览）**：先带 `--first-only` 参数运行脚本，仅生成第 1 页预览图展示给用户确认效果：
-   ```bash
-   node {skillBaseDir}/scripts/render_xhs_forum.js "./小说/[小说名称]/[小说名称].md" --theme=warm-orange --first-only
-   ```
-2. **第二步（确认后全量导出）**：待用户明确表示确认满意后，再去掉 `--first-only` 批量生成全套图片与 `preview.html`：
-   ```bash
-   node {skillBaseDir}/scripts/render_xhs_forum.js "./小说/[小说名称]/[小说名称].md" --theme=warm-orange
-   ```
+### 4. 「先预览 1 张，确认后再全量生成并同步至私密图库」工作流铁律（必守）
+- **论坛体图片统一存放与 GitHub 私密仓库归档规则**：
+  - 所有论坛体小说生成的小红书图片（含 `00-封面.png`、`01.png ~ XX.png` 与 `preview.html`），**统一存放在本地私密图库仓库 `./小红书论坛体图库/{小说名称}/` 对应的文件夹下**（不再散落在 `./小说/{小说名称}/小红书图片/` 下）。
+  - 该目录已绑定 GitHub 私密仓库：`https://github.com/Kx-Chen-99/xhs-forum-images.git`（分支：`main`）。
+- **两步预览与自动上传流程**：
+  1. **第一步（快速预览）**：先带 `--first-only`（或 `--page=N`）参数运行脚本，仅生成 1 张预览图展示给用户确认效果（单页预览不会触发 git push）：
+     ```bash
+     node {skillBaseDir}/scripts/render_xhs_forum.js "./小说/[小说名称]/[小说名称].md" --theme=warm-orange --first-only --with-cover
+     ```
+  2. **第二步（确认后全量导出并自动上传私密仓库）**：待用户明确表示确认满意后，去掉 `--first-only` 运行全量生成；脚本会自动将全套图片输出至 `./小红书论坛体图库/[小说名称]/`，并自动执行 `git add`、`git commit` 与 `git push origin main` 上传至 GitHub 私密仓库 `Kx-Chen-99/xhs-forum-images`：
+     ```bash
+     node {skillBaseDir}/scripts/render_xhs_forum.js "./小说/[小说名称]/[小说名称].md" --theme=warm-orange --with-cover --push
+     ```
