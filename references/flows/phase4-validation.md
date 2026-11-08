@@ -17,7 +17,7 @@
 对每一章执行以下检查：
 
 1. **文件存在性**：检查 `filePath` 指定的文件是否存在
-2. **字数检查**：使用脚本批量检查（`{skillBaseDir}` 为 skill 安装根目录，见 [shared-infrastructure.md](shared-infrastructure.md)）：
+2. **字数检查**（**论坛体模式跳过字数阈值限制**，论坛体以能够完整清晰地描述出整个事件为唯一评判标准，无任何字数要求）：其他模式使用脚本批量检查（`{skillBaseDir}` 为 skill 安装根目录，见 [shared-infrastructure.md](shared-infrastructure.md)）：
    ```bash
    node {skillBaseDir}/scripts/check_chapter_wordcount.mjs --all <项目文件夹路径> --json
    ```

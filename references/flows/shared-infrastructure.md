@@ -167,3 +167,18 @@ Agent 优先用 `--json` + 退出码判断结果：`results[].word_count` 可直
 | Phase 4（自动校验） | 批量检查所有章节字数，不合格章节自动重写 |
 
 低于3000字的章节必须使用 [content-expansion.md](../guides/content-expansion.md) 的扩充技巧进行扩充。
+
+---
+
+## Skill 仓库修改同步与原仓库拉取合码规则（铁律）
+
+每当对本 Skill（`{skillBaseDir}`，即 `/Users/bytedance/.agents/skills/chinese-novelist`）内的任何文档（`SKILL.md`、`references/**`）或脚本（`scripts/**`）进行修改后，**必须将修改同步推送到远程 Git 仓库**，且在同步过程中严格执行以下步骤：
+
+1. **同步工作区与 Skill 内置脚本**：若修改了 `./工具/生成小红书论坛体图片.js` 或 `./工具/themes/`，需同步更新到 `{skillBaseDir}/scripts/render_xhs_forum.js` 及 `{skillBaseDir}/scripts/themes/`，保持两边一致。
+2. **拉取原仓库（`upstream` 及 `origin`）最新内容并合码**：
+   - 执行 `git -C "{skillBaseDir}" fetch upstream` 与 `git -C "{skillBaseDir}" fetch origin`；
+   - 将原仓库（`upstream/master` 或 `origin/master`）的更新合并到本地分支（`git -C "{skillBaseDir}" merge upstream/master` / `git -C "{skillBaseDir}" pull --rebase origin master`）；
+   - **冲突解决**：若合码过程中出现冲突，必须仔细比对原仓库更新与本地新增规则，手动解决所有冲突标记，保留双方有效内容并确保脚本语法与文档结构完整。
+3. **提交并推送到远程仓库**：
+   - 将修改的文件（注意排除个人运行时生成的 `user-preferences.json` 等无需入库的临时文件）执行 `git add`、`git commit`，并推送至远程仓库：`git -C "{skillBaseDir}" push origin master`。
+
