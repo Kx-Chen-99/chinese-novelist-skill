@@ -2,8 +2,7 @@
  * 论坛体主题品类注册中心 (Theme Registry)
  * - oc     : OC 原创（手绘草稿手账风 UI）
  * - glory  : 《全职高手》同人（荣耀官方论坛·深空暗金电竞风 UI）
- * - dragon : 《龙族》同人（卡塞尔学院·守夜人讨论区半朽世界树暗金墨绿终端风 UI）
- * 后续新增其他 IP/背景品类时，只需在此注册模块即可。
+ * - dragon : 《龙族》同人（支持 gothic-parchment / retro-bbs / alchemy-bronze 三套卡塞尔专属 UI）
  */
 
 const ocModule = require('./oc');
@@ -14,11 +13,15 @@ const PRESET_THEMES = {
   ...ocModule.OC_PRESET_THEMES,
   'glory-gold': gloryModule.GLORY_THEME,
   'cassell-forum': dragonModule.DRAGON_THEME,
+  ...dragonModule.DRAGON_PRESET_THEMES,
 };
 
 function resolveThemeAndCategory(options = {}, mdContent = '') {
   if (options.theme === 'glory-gold') {
     return { theme: gloryModule.GLORY_THEME, handler: gloryModule };
+  }
+  if (options.theme && dragonModule.DRAGON_PRESET_THEMES[options.theme]) {
+    return { theme: dragonModule.DRAGON_PRESET_THEMES[options.theme], handler: dragonModule };
   }
   if (options.theme === 'cassell-forum' || options.theme === 'dragon') {
     return { theme: dragonModule.DRAGON_THEME, handler: dragonModule };

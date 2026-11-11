@@ -211,6 +211,9 @@ function parseForumMarkdown(mdContent) {
 }
 
 function renderFloorSliceHTML(floor, slice, theme, handler) {
+  if (handler.renderFloorSliceHTML) {
+    return handler.renderFloorSliceHTML(floor, slice, theme);
+  }
   const { roleClass, badgeHTML } = handler.getBadgeHTML(floor);
   const avatarSVG = handler.getAvatarSVG(floor, theme);
 
@@ -266,7 +269,19 @@ async function measureAndPaginate(page, parsed, titleTag, cleanTitle, theme, han
     .join('\n');
 
   const css = handler.buildCSS(theme, fontSize, lineHeight, cardGap);
-  const pageMeta = handler.getPageMeta(parsed, cleanTitle);
+  const pageMeta = handler.getPageMeta(parsed, cleanTitle, theme);
+
+  const heroMeasureHTML = handler.renderHeroHTML
+    ? handler.renderHeroHTML(titleTag, cleanTitle, pageMeta)
+    : `<div class="hero-memo-card" id="m-hero">
+          <div class="washi-tape"></div>
+          <div class="hero-sketch-box"></div>
+          ${pageMeta.heroWatermarkHTML}
+          <div class="hero-content">
+            <span class="sketch-topic-tag">#${formatInlineMarkdown(titleTag)}</span>
+            <span class="title-text">${formatInlineMarkdown(cleanTitle)}</span>
+          </div>
+        </div>`;
 
   const measureHTML = `
     <!DOCTYPE html>
@@ -282,15 +297,7 @@ async function measureAndPaginate(page, parsed, titleTag, cleanTitle, theme, han
           <span class="nb-left">${pageMeta.topbarLeftHTML}</span>
           <span class="nb-right">Page 01 / 01</span>
         </div>
-        <div class="hero-memo-card" id="m-hero">
-          <div class="washi-tape"></div>
-          <div class="hero-sketch-box"></div>
-          ${pageMeta.heroWatermarkHTML}
-          <div class="hero-content">
-            <span class="sketch-topic-tag">#${formatInlineMarkdown(titleTag)}</span>
-            <span class="title-text">${formatInlineMarkdown(cleanTitle)}</span>
-          </div>
-        </div>
+        ${heroMeasureHTML}
         <div class="floors-container" id="m-floors">
           ${fullFloorHTMLs}
           <div id="m-sys-wrapper">${allSysHTML}</div>
@@ -506,7 +513,9 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
     const totalNumStr = String(totalPages).padStart(2, '0');
 
     const heroHTML = isPage1
-      ? `<div class="hero-memo-card">
+      ? handler.renderHeroHTML
+        ? handler.renderHeroHTML(titleTag, cleanTitle, pageMeta)
+        : `<div class="hero-memo-card">
            <div class="washi-tape"></div>
            <div class="hero-sketch-box"></div>
            ${pageMeta.heroWatermarkHTML}
@@ -583,7 +592,10 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
       </html>
     `;
     await page.setContent(coverFullHTML, { waitUntil: 'load' });
-    const coverPath = path.join(outDir, '00-封面.png');
+    const coverFileName = options.customPrefix
+      ? `${options.customPrefix}-封面.png`
+      : '00-封面.png';
+    const coverPath = path.join(outDir, coverFileName);
     const coverEl = await page.$('.xhs-card');
     await coverEl.screenshot({ path: coverPath });
     generatedFiles.push(coverPath);
@@ -607,7 +619,7 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
       `;
       await page.setContent(singlePageHTML, { waitUntil: 'load' });
       const fileName = options.customPrefix
-        ? `${options.customPrefix}.png`
+        ? `${options.customPrefix}-内页.png`
         : `${String(realPageNum).padStart(2, '0')}.png`;
       const filePath = path.join(outDir, fileName);
       const cardEl = await page.$('.xhs-card');

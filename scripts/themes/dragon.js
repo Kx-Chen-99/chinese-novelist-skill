@@ -1,30 +1,23 @@
 /**
  * 【品类三：同人向 ·《龙族》卡塞尔学院·守夜人讨论区】
- * 视觉风格：卡塞尔学院 · 半朽世界树暗夜墨绿鎏金终端风 UI (cassell-forum)
- * 包含：半朽世界树校徽 (Yggdrasil)、诺玛/EVA系统终端、狮心会/学生会/风纪委员会阵营铭牌、卡塞尔标准封面
+ * 严格对齐用户指定参考图：
+ * - 封面（图1）：暗夜雾中卡塞尔古堡钟楼 + 黄金瞳黑龙 + 卡塞尔学院官方圆形半朽世界树校徽 + 深靛蓝鎏金标题牌
+ * - 内页（图2）：深靛蓝校徽导航顶栏 + 守夜人论坛绿字副标 + 红笔刷下划线大标题 + 暖米白网格纸底 + 胶带斜贴便签楼层卡（左侧方形阵营头像 + 右侧金字楼层号/深蓝昵称/正文）
  */
 
-const { formatInlineMarkdown, splitCoverTitleLines } = require('./common');
+const fs = require('fs');
+const path = require('path');
+const { formatInlineMarkdown } = require('./common');
 
 const DRAGON_THEME = {
   category: 'dragon',
   id: 'cassell-forum',
-  label: '守夜人讨论区（龙族·卡塞尔学院半朽世界树暗金墨绿终端风）',
+  label: '守夜人论坛（卡塞尔学院官方校徽封面 + 便签拼贴内页）',
   isDragonTheme: true,
-  paperBg: '#07110D',
-  inkColor: '#E2ECE8',
-  inkMuted: '#8FA89E',
-  markerSolid: '#D4AF37',
-  markerDeep: '#991B1B',
-  markerSoft: '#FEF3C7',
-  highlighter: 'rgba(212, 175, 55, 0.22)',
-  darkCardFill: '#0D1F18',
-  darkCardShadow: '#D4AF37',
-  darkAccent: '#F3C65F',
-  topbarBg: '#0B1914',
-  topbarBorder: '#D4AF37',
-  topbarText: '#F4F1EA',
-  topbarAccent: '#F3C65F',
+};
+
+const DRAGON_PRESET_THEMES = {
+  'cassell-forum': DRAGON_THEME,
 };
 
 const SPECIAL_DRAGON_AUTHORS = new Set([
@@ -42,162 +35,64 @@ const SPECIAL_DRAGON_AUTHORS = new Set([
   'EVA',
 ]);
 
-/**
- * 判断一篇论坛体 Markdown 是否属于《龙族》卡塞尔守夜人讨论区品类
- */
 function isDragonContent(boardName = '', mdContent = '') {
   return (
     boardName.includes('卡塞尔') ||
     boardName.includes('守夜人') ||
     mdContent.includes('守夜人讨论区') ||
     mdContent.includes('卡塞尔学院') ||
-    mdContent.includes('路明非') ||
-    mdContent.includes('楚子航') ||
-    mdContent.includes('恺撒')
+    mdContent.includes('路明非')
   );
 }
 
 function isSpecialDragonAuthor(author = '') {
   const clean = String(author || '').trim();
   if (SPECIAL_DRAGON_AUTHORS.has(clean)) return true;
-  return (
-    clean.includes('管理员') ||
-    clean.includes('教授') ||
-    clean.includes('系统终端') ||
-    clean === '村雨' ||
-    clean === '狄克推多' ||
-    clean === '守夜人'
-  );
+  return clean.includes('管理员') || clean.includes('教授') || clean.includes('系统终端');
 }
 
-/**
- * 卡塞尔学院校徽【半朽的世界树 Yggdrasil】纯矢量 SVG
- * 左半侧繁茂枝叶与生命果实，右半侧枯枝苍劲，外环秘党双圈炼金铭文环与十字星芒
- */
-function getYggdrasilCrestSVG(size = 18, isWatermark = false) {
-  const opacityAttr = isWatermark ? 'opacity="0.14"' : '';
-  return `
-    <svg width="${size}" height="${size}" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" ${opacityAttr} style="vertical-align: -3px; flex-shrink: 0;">
-      <!-- 外层秘党炼金双环 -->
-      <circle cx="60" cy="60" r="54" stroke="#D4AF37" stroke-width="2.4"/>
-      <circle cx="60" cy="60" r="48" stroke="#D4AF37" stroke-width="1.2" stroke-dasharray="4 3"/>
-      <circle cx="60" cy="60" r="43" fill="#07120E" stroke="rgba(52, 211, 153, 0.35)" stroke-width="1"/>
-      <!-- 炼金几何背景八角星芒 -->
-      <polygon points="60,14 71,49 106,60 71,71 60,106 49,71 14,60 49,49" stroke="rgba(212, 175, 55, 0.25)" stroke-width="1" fill="rgba(16, 185, 129, 0.04)"/>
-      <!-- 中轴线（半生半朽分界） -->
-      <line x1="60" y1="16" x2="60" y2="104" stroke="rgba(212, 175, 55, 0.28)" stroke-width="0.9" stroke-dasharray="2 2"/>
-      <!-- 世界树主干与盘绕根系 -->
-      <path d="M60 32V82" stroke="#D4AF37" stroke-width="4.2" stroke-linecap="round"/>
-      <path d="M58 46V80" stroke="#F3C65F" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M60 78C53 84 44 89 35 90M60 80C55 88 49 94 42 96M60 78C67 84 76 89 85 90M60 80C65 88 71 94 78 96" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round"/>
-      <!-- 左半侧：繁茂枝叶（秘林翠绿 + 鎏金叶脉） -->
-      <path d="M60 56C50 52 40 44 34 34M60 46C52 40 45 33 41 25M60 64C49 62 39 57 31 49" stroke="#F3C65F" stroke-width="2.4" stroke-linecap="round"/>
-      <circle cx="34" cy="34" r="6" fill="#10B981" stroke="#F3C65F" stroke-width="1.2"/>
-      <circle cx="42" cy="25" r="5.5" fill="#059669" stroke="#F3C65F" stroke-width="1.2"/>
-      <circle cx="30" cy="48" r="5.5" fill="#10B981" stroke="#F3C65F" stroke-width="1.2"/>
-      <circle cx="46" cy="39" r="6.5" fill="#34D399" stroke="#D4AF37" stroke-width="1.2"/>
-      <circle cx="52" cy="28" r="5" fill="#10B981" stroke="#D4AF37" stroke-width="1.1"/>
-      <circle cx="39" cy="56" r="4.5" fill="#059669" stroke="#D4AF37" stroke-width="1.1"/>
-      <!-- 右半侧：枯朽枝桠（苍劲折线古铜金） -->
-      <path d="M60 54L74 42L85 30M74 42L86 44M60 44L71 31L77 22M60 63L75 56L88 53M75 56L83 64" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"/>
-      <!-- 顶部秘党龙瞳冠冕星 -->
-      <polygon points="60,15 62.5,21 69,21.5 64,25.5 65.5,32 60,28.5 54.5,32 56,25.5 51,21.5 57.5,21" fill="#F3C65F"/>
-      <circle cx="60" cy="55" r="3" fill="#DC2626" stroke="#FEF08A" stroke-width="0.9"/>
-    </svg>
-  `;
+const assetCache = {};
+function getAssetDataURI(fileName) {
+  if (assetCache[fileName] !== undefined) return assetCache[fileName];
+  const candidates = [
+    path.join(__dirname, '..', 'assets', fileName),
+    path.resolve(process.cwd(), '工具/assets', fileName),
+    path.join('/Users/bytedance/Library/Mobile Documents/iCloud~md~obsidian/Documents/职业技术/工具/assets', fileName),
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        const ext = p.endsWith('.png') ? 'png' : 'jpeg';
+        const b64 = fs.readFileSync(p).toString('base64');
+        assetCache[fileName] = `data:image/${ext};base64,${b64}`;
+        return assetCache[fileName];
+      }
+    } catch (_) {}
+  }
+  assetCache[fileName] = '';
+  return '';
 }
 
-/**
- * 页面背景正中央的《龙族·卡塞尔学院半朽世界树》大幅水印
- */
-function getDragonPageBgWatermarkHTML() {
-  return `
-    <div class="dragon-page-bg-logo">
-      ${getYggdrasilCrestSVG(250, true)}
-    </div>
-  `;
-}
-
-/**
- * 守夜人讨论区专属纹章头像（SVG）
- */
-function getDragonAvatarSVG(floor) {
+function getDragonAvatarHTML(floor) {
   const author = floor.author || '';
-  const shieldOuter = 'M18 2L31 7V18C31 26.5 25.2 32.2 18 34.5C10.8 32.2 5 26.5 5 18V7L18 2Z';
-  const shieldInner = 'M18 4.8L28.5 8.8V17.8C28.5 24.8 23.8 29.6 18 31.6C12.2 29.6 7.5 24.8 7.5 17.8V8.8L18 4.8Z';
+  let file = 'avatar-student.png';
 
-  // 1. 楼主 / 新闻部 / 芬格尔
-  if (floor.isOP || author.includes('芬格尔') || author.includes('新闻部')) {
-    return `
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="${shieldOuter}" fill="#091812" stroke="#F3C65F" stroke-width="1.8"/>
-        <path d="${shieldInner}" fill="#112A20"/>
-        <path d="M18 9V26M18 15L12 11M18 17L24 12M18 21L13 18" stroke="#34D399" stroke-width="1.8" stroke-linecap="round"/>
-        <circle cx="18" cy="10" r="2.2" fill="#F3C65F"/>
-      </svg>`;
+  if (floor.isOP || author.includes('新闻部') || author.includes('芬格尔') || author.includes('守夜人') || author.includes('曼施坦因') || author.includes('EVA')) {
+    file = 'avatar-op.png';
+  } else if (floor.isAnon || author.includes('匿名')) {
+    file = 'avatar-anon.png';
+  } else if (author.includes('诺顿馆') || author.includes('狄克推多') || author.includes('恺撒') || author.includes('圣殿')) {
+    file = 'avatar-union.png';
+  } else if (author.includes('狮心会') || author.includes('村雨') || author.includes('楚子航') || author.includes('装备部')) {
+    file = 'avatar-lion.png';
+  } else {
+    file = 'avatar-student.png';
   }
 
-  // 2. 楚子航 / 村雨 / 狮心会
-  if (author.includes('村雨') || author.includes('楚子航') || author.includes('狮心会')) {
-    return `
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="${shieldOuter}" fill="#180A0A" stroke="#F3C65F" stroke-width="1.8"/>
-        <path d="${shieldInner}" fill="#450A0A"/>
-        <path d="M11 26L25 9" stroke="#F8FAFC" stroke-width="2.3" stroke-linecap="round"/>
-        <path d="M14 20L19 25" stroke="#F3C65F" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="18" cy="18" r="2.4" fill="#EF4444" stroke="#FEF08A" stroke-width="0.8"/>
-      </svg>`;
-  }
-
-  // 3. 恺撒 / 狄克推多 / 学生会 / 安珀馆 / 诺顿馆
-  if (author.includes('狄克推多') || author.includes('恺撒') || author.includes('安珀馆') || author.includes('诺顿馆')) {
-    return `
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="${shieldOuter}" fill="#0B1528" stroke="#F3C65F" stroke-width="1.8"/>
-        <path d="${shieldInner}" fill="#1E3A8A"/>
-        <path d="M10 22L13 12L18 17L23 12L26 22H10Z" fill="#F3C65F" stroke="#FEF08A" stroke-width="1"/>
-        <rect x="10" y="23.5" width="16" height="2" fill="#F3C65F"/>
-      </svg>`;
-  }
-
-  // 4. 曼施坦因 / 守夜人 / 教授
-  if (author.includes('曼施坦因') || author.includes('守夜人') || author.includes('教授')) {
-    return `
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="${shieldOuter}" fill="#1F1209" stroke="#F3C65F" stroke-width="1.8"/>
-        <path d="${shieldInner}" fill="#3B1D0A"/>
-        <path d="M18 8V27M11 13H25" stroke="#F3C65F" stroke-width="2" stroke-linecap="round"/>
-        <polygon points="11,14 8.5,20 13.5,20" fill="#FDE68A"/>
-        <polygon points="25,14 22.5,20 27.5,20" fill="#FDE68A"/>
-      </svg>`;
-  }
-
-  // 5. EVA 系统终端
-  if (author.includes('EVA') || author.includes('系统')) {
-    return `
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="${shieldOuter}" fill="#041E19" stroke="#34D399" stroke-width="1.8"/>
-        <path d="${shieldInner}" fill="#064E3B"/>
-        <polygon points="18,8 26,18 18,28 10,18" stroke="#6EE7B7" stroke-width="1.6" fill="rgba(52, 211, 153, 0.18)"/>
-        <circle cx="18" cy="18" r="3" fill="#34D399"/>
-      </svg>`;
-  }
-
-  // 6. 匿名用户 / 普通卡塞尔学生
-  const borderCol = floor.isAnon ? '#64748B' : '#D4AF37';
-  const innerFill = floor.isAnon ? '#13201B' : '#0F291E';
-  return `
-    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="${shieldOuter}" fill="#08130E" stroke="${borderCol}" stroke-width="1.6"/>
-      <path d="${shieldInner}" fill="${innerFill}"/>
-      <path d="M18 10V25M18 15L13 12M18 17L23 14" stroke="${borderCol}" stroke-width="1.6" stroke-linecap="round"/>
-      <circle cx="18" cy="18" r="2" fill="#34D399"/>
-    </svg>`;
+  const uri = getAssetDataURI(file);
+  return `<img src="${uri}" class="dragon-avatar-img" alt="avatar" />`;
 }
 
-/**
- * 获取《龙族》守夜人讨论区专属社团/权限胶囊标签
- */
 function getDragonBadgeHTML(floor) {
   const author = floor.author || '';
   let roleClass = 'role-anon';
@@ -206,54 +101,64 @@ function getDragonBadgeHTML(floor) {
 
   let badgeHTML = '';
   if (floor.isOP) {
-    badgeHTML = '<span class="sketch-stamp stamp-op">楼主 · 新闻部</span>';
-  } else if (author.includes('EVA') || author.includes('系统终端')) {
-    badgeHTML = '<span class="sketch-stamp stamp-eva">诺玛主控终端</span>';
-  } else if (author.includes('守夜人')) {
-    badgeHTML = '<span class="sketch-stamp stamp-special">副校长 · 最高管理员</span>';
+    badgeHTML = '<span class="sketch-stamp stamp-op">楼主</span>';
   } else if (author.includes('芬格尔')) {
-    badgeHTML = '<span class="sketch-stamp stamp-special">新闻部 · 管理员</span>';
+    badgeHTML = '<span class="sketch-stamp stamp-op">管理员</span>';
+  } else if (author.includes('守夜人')) {
+    badgeHTML = '<span class="sketch-stamp stamp-op">副校长</span>';
   } else if (author.includes('曼施坦因')) {
-    badgeHTML = '<span class="sketch-stamp stamp-special">风纪委员会主任</span>';
-  } else if (author === '村雨') {
-    badgeHTML = '<span class="sketch-stamp stamp-special">狮心会会长 · 超A级</span>';
-  } else if (author === '狄克推多') {
-    badgeHTML = '<span class="sketch-stamp stamp-special">学生会主席 · A级</span>';
-  } else if (author.includes('狮心会')) {
-    badgeHTML = '<span class="sketch-stamp stamp-lion">狮心会</span>';
-  } else if (author.includes('安珀馆') || author.includes('诺顿馆')) {
-    badgeHTML = '<span class="sketch-stamp stamp-union">学生会</span>';
-  } else if (author.includes('装备部')) {
-    badgeHTML = '<span class="sketch-stamp stamp-dept">装备部</span>';
-  } else if (author.includes('炼金')) {
-    badgeHTML = '<span class="sketch-stamp stamp-dept">炼金化学部</span>';
-  } else if (author.includes('圣殿骑士')) {
-    badgeHTML = '<span class="sketch-stamp stamp-dept">圣殿骑士团</span>';
-  } else if (author.includes('古籍区') || author.includes('钟楼') || author.includes('芝加哥') || author.includes('1区')) {
-    badgeHTML = '<span class="sketch-stamp stamp-dept">卡塞尔学生</span>';
-  } else if (floor.isAnon) {
-    badgeHTML = '<span class="sketch-stamp stamp-guild">匿名通道</span>';
-  } else {
-    badgeHTML = '<span class="sketch-stamp stamp-dept">卡塞尔学生</span>';
+    badgeHTML = '<span class="sketch-stamp stamp-op">风纪主任</span>';
+  } else if (author.includes('EVA')) {
+    badgeHTML = '<span class="sketch-stamp stamp-op">系统终端</span>';
   }
 
   return { roleClass, badgeHTML };
 }
 
-function splitDragonCoverTitle(cleanTitle) {
-  const raw = String(cleanTitle || '').trim();
-  const quoteMatch = raw.match(/^(.*?[“"][^”"]+[”"])\s*(.+)$/);
-  if (quoteMatch) {
-    const line1 = quoteMatch[1].trim();
-    const line2 = quoteMatch[2].trim();
-    const size1 = line1.length <= 9 ? 31 : 27;
-    const size2 = line2.length <= 7 ? 38 : 32;
-    return { line1, line2, size1, size2 };
+/**
+ * 图2专属楼层卡片渲染（左上斜贴胶带 + 左侧方形头像 + 右侧金字楼层号与昵称 + 正文）
+ */
+function renderDragonFloorSliceHTML(floor, slice) {
+  const { roleClass, badgeHTML } = getDragonBadgeHTML(floor);
+  const avatarHTML = getDragonAvatarHTML(floor);
+
+  let cleanAuthor = floor.author || '';
+  if (cleanAuthor.includes('（管理员）') || cleanAuthor.includes('（教授）') || cleanAuthor.includes('（系统终端）')) {
+    cleanAuthor = cleanAuthor.replace(/（.*?）/g, '').trim();
   }
-  return splitCoverTitleLines(raw);
+
+  const quotesHTML = (slice.quotes || [])
+    .map((q) => `<div class="floor-quote">↳ ${formatInlineMarkdown(q, false)}</div>`)
+    .join('');
+
+  const paragraphsHTML = (slice.paragraphs || [])
+    .map((p, pIdx) => `<p class="floor-p" data-p-idx="${pIdx}">${formatInlineMarkdown(p, false)}</p>`)
+    .join('');
+
+  const floorLabel = slice.isCont ? `${floor.floorNum} (续)` : floor.floorNum;
+
+  return `
+    <div class="floor-item ${roleClass}" data-slice-id="${slice.sliceId || ''}">
+      <div class="floor-tape"></div>
+      <div class="floor-row">
+        <div class="avatar">${avatarHTML}</div>
+        <div class="floor-main">
+          <div class="floor-header">
+            <span class="floor-num">${floorLabel}</span>
+            <span class="author-name">${formatInlineMarkdown(cleanAuthor, false)}</span>
+            ${badgeHTML}
+          </div>
+          <div class="floor-body">
+            ${quotesHTML}
+            ${paragraphsHTML}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-function buildDragonForumCSS(theme, fontSize = 15.5, lineHeight = 1.45, cardGap = 6) {
+function buildDragonForumCSS(theme, fontSize = 14.5, lineHeight = 1.42, cardGap = 8) {
   return `
     * {
       box-sizing: border-box;
@@ -262,124 +167,116 @@ function buildDragonForumCSS(theme, fontSize = 15.5, lineHeight = 1.45, cardGap 
       -webkit-font-smoothing: antialiased;
     }
     body {
-      background: #050C09;
+      background: #E5E0D5;
       font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      color: #E2ECE8;
+      color: #24272D;
     }
-    /* 375px 手机原生宽度 + 高度自适应 (3x 导出为 1125px 宽超清图) */
+    /* 375px 手机原生宽度 + 高度自适应（图2 暖米白方格手账纸底） */
     .xhs-card {
       width: 375px;
       height: auto;
-      background-color: #07110D;
+      background-color: #F5F2EA;
       background-image:
-        radial-gradient(circle at 50% 48%, rgba(16, 185, 129, 0.09) 0%, rgba(212, 175, 55, 0.05) 45%, transparent 76%),
-        linear-gradient(180deg, rgba(11, 26, 20, 0.92) 0%, rgba(7, 17, 13, 0.99) 100%);
-      padding: 8px 10px 7px 10px;
+        linear-gradient(to right, rgba(185, 178, 165, 0.26) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(185, 178, 165, 0.26) 1px, transparent 1px);
+      background-size: 16px 16px;
+      padding: 0 12px 10px 12px;
       display: flex;
       flex-direction: column;
       position: relative;
       overflow: hidden;
-      border-top: 2px solid rgba(212, 175, 55, 0.82);
     }
-    #card-cover {
-      height: 500px;
-    }
-    /* 页面背景正中央的《卡塞尔学院·半朽世界树》水印 */
-    .dragon-page-bg-logo {
-      position: absolute;
-      top: 52%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 320px;
-      height: 260px;
-      pointer-events: none;
-      z-index: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.9;
-    }
-    /* 顶部守夜人讨论区导航条 */
+    /* 顶部深靛蓝导航栏（左：卡塞尔官方圆形校徽 + 金色面包屑，右：页码） */
     .notebook-header {
-      height: 24px;
-      margin-bottom: 6px;
-      padding: 0 4px 3px 4px;
+      height: 36px;
+      margin: 0 -12px 8px -12px;
+      padding: 0 11px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: transparent;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.32);
+      background: linear-gradient(90deg, #1B2436 0%, #253147 100%);
+      border-bottom: 1.5px solid #B89452;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
       flex-shrink: 0;
       position: relative;
-      z-index: 2;
+      z-index: 4;
     }
     .nb-left {
-      font-size: 10.5px;
+      font-family: "Songti SC", "STSong", "PingFang SC", serif;
+      font-size: 11px;
       font-weight: 700;
-      color: #CBD5E1;
+      color: #E2C481;
       letter-spacing: 0.2px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      white-space: nowrap;
     }
-    .cassell-badge-pill {
-      display: inline-block;
-      background: linear-gradient(135deg, #D4AF37 0%, #B48A1E 100%);
-      color: #07110D;
-      font-size: 8.5px;
-      font-weight: 900;
-      padding: 0.5px 4px;
-      border-radius: 2px;
-      letter-spacing: 0.5px;
-      margin-right: 1px;
+    .nav-crest-img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+      flex-shrink: 0;
     }
     .nb-right {
-      font-family: "DIN Alternate", "Avenir Next Condensed", "SF Mono", "PingFang SC", monospace;
-      font-size: 11px;
+      font-family: "DIN Alternate", "SF Mono", monospace;
+      font-size: 10.5px;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      color: #D4AF37;
+      color: #C4A564;
+      flex-shrink: 0;
     }
-    /* 首页主楼标题栏（深色学院终端边框 + 红色置顶热帖标签） */
+    /* 首页顶部栏目头（守夜人论坛 + 投票专区 + 大标题 + 红色手绘下划线） */
     .hero-memo-card {
       position: relative;
-      margin-top: 0;
-      margin-bottom: 6px;
-      padding: 6px 6px 8px 6px;
+      margin-bottom: 9px;
+      padding: 0 2px 4px 2px;
       flex-shrink: 0;
       z-index: 2;
-      background: rgba(13, 31, 24, 0.65);
-      border-left: 2.5px solid #D4AF37;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.35);
     }
     .hero-sketch-box,
     .washi-tape,
     .dragon-watermark {
       display: none;
     }
-    .hero-content {
-      position: relative;
-      z-index: 1;
+    .dragon-forum-banner {
+      padding-bottom: 5px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #DED8CA;
     }
-    .sketch-topic-tag {
-      display: inline-block;
-      background: #991B1B;
-      border: 1px solid #EF4444;
-      color: #FEF2F2;
-      border-radius: 2px;
+    .dragon-forum-name {
+      font-family: "Songti SC", "STSong", "PingFang SC", serif;
+      font-size: 16.5px;
+      font-weight: 900;
+      color: #2E5840;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
+    }
+    .dragon-forum-sub {
       font-size: 10px;
-      font-weight: 800;
-      padding: 0.5px 5px;
-      margin-right: 6px;
-      vertical-align: 1px;
+      font-weight: 500;
+      color: #8C877E;
+      margin-top: 2px;
     }
-    .title-text {
-      font-size: ${Math.round((fontSize + 1.0) * 10) / 10}px;
+    .dragon-post-title-wrap {
+      position: relative;
+      padding-bottom: 5px;
+    }
+    .dragon-post-title {
+      font-size: 14.8px;
       font-weight: 850;
-      line-height: 1.36;
-      color: #FFFFFF;
+      color: #1D2127;
+      line-height: 1.35;
+      letter-spacing: 0.1px;
     }
-    /* 楼层容器 */
+    .dragon-red-underline {
+      display: block;
+      width: 240px;
+      height: 6px;
+      margin-top: 2px;
+    }
+    /* 楼层便签列表容器 */
     .floors-container {
       flex: 0 0 auto;
       display: flex;
@@ -390,235 +287,173 @@ function buildDragonForumCSS(theme, fontSize = 15.5, lineHeight = 1.45, cardGap 
       position: relative;
       z-index: 2;
     }
-    /* 单个楼层：学院终端极简横线分隔 */
+    /* 单个楼层便签卡片（复刻图2：米白纸条 + 左上斜贴胶带 + 左侧方形头像 + 右侧内容） */
     .floor-item {
       position: relative;
-      padding: 5px 4px 6px 4px;
+      padding: 8px 10px 8px 9px;
+      background: #FAF8F2;
+      border: 1px solid #E5DFD2;
+      border-radius: 2px;
+      box-shadow: 0 2px 5px rgba(30, 35, 45, 0.07);
+      min-height: 58px;
     }
-    .sketch-border-layer {
+    .floor-item.role-op {
+      background: #F9F3E4;
+      border-left: 3.5px solid #C69B4B;
+    }
+    .floor-item.role-special {
+      background: #F8F4EA;
+      border-left: 3px solid #9B3B3B;
+    }
+    /* 左上角斜贴半透明和纸胶带 */
+    .floor-tape {
       position: absolute;
-      inset: 0;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-      border-radius: 0;
-      z-index: 0;
+      top: -4px;
+      left: 5px;
+      width: 30px;
+      height: 10px;
+      background: rgba(228, 220, 202, 0.78);
+      border: 0.5px solid rgba(198, 188, 168, 0.42);
+      transform: rotate(-28deg);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      pointer-events: none;
+      z-index: 3;
     }
-    .floor-item.role-op .sketch-border-layer {
-      background: rgba(212, 175, 55, 0.03);
-      border-bottom: 1px solid rgba(212, 175, 55, 0.36);
+    .floor-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
     }
-    .floor-item.role-special .sketch-border-layer {
-      background: rgba(153, 27, 27, 0.06);
-      border-bottom: 1px solid rgba(239, 68, 68, 0.42);
+    .avatar {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     }
-    .floor-content-layer {
-      position: relative;
-      z-index: 1;
+    .dragon-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .floor-main {
+      flex: 1;
+      min-width: 0;
     }
     .floor-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: nowrap;
-      gap: 6px;
-      margin-bottom: 3px;
-    }
-    .floor-user {
-      display: flex;
-      align-items: center;
       flex-wrap: nowrap;
       gap: 5px;
-      min-width: 0;
-      overflow: hidden;
+      margin-bottom: 3px;
     }
-    .avatar {
-      width: 19px;
-      height: 19px;
+    .floor-num {
+      font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+      font-size: 12.5px;
+      font-weight: 850;
+      color: #C3923E;
       flex-shrink: 0;
-    }
-    .avatar svg {
-      width: 100%;
-      height: 100%;
-      display: block;
     }
     .author-name {
       font-size: 12.5px;
-      font-weight: 750;
-      color: #6EE7B7;
+      font-weight: 800;
+      color: #1D2B44;
       white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .role-op .author-name {
-      color: #F3C65F;
-      font-weight: 800;
-    }
-    .role-special .author-name {
-      color: #FDE047;
-      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .sketch-stamp {
       font-size: 9px;
-      font-weight: 700;
+      font-weight: 800;
       padding: 1px 5px;
       border-radius: 2px;
       line-height: 1.2;
-      display: inline-block;
-      white-space: nowrap;
       flex-shrink: 0;
     }
     .stamp-op {
-      background: rgba(212, 175, 55, 0.22);
-      border: 0.5px solid rgba(243, 198, 95, 0.55);
-      color: #FDE68A;
-    }
-    .stamp-special {
-      background: rgba(185, 28, 28, 0.38);
-      border: 0.5px solid rgba(248, 113, 113, 0.6);
-      color: #FECACA;
-    }
-    .stamp-eva {
-      background: rgba(5, 150, 105, 0.35);
-      border: 0.5px solid #34D399;
-      color: #A7F3D0;
-    }
-    .stamp-lion {
-      background: rgba(153, 27, 27, 0.25);
-      color: #FCA5A5;
-    }
-    .stamp-union {
-      background: rgba(30, 58, 138, 0.45);
-      color: #93C5FD;
-    }
-    .stamp-dept {
-      background: rgba(16, 185, 129, 0.14);
-      color: #A7F3D0;
-    }
-    .stamp-guild {
-      background: rgba(148, 163, 184, 0.13);
-      color: #94A3B8;
-    }
-    .floor-meta {
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-    .floor-num {
-      font-family: "DIN Alternate", "SF Mono", monospace;
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #64748B;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .role-op .floor-num,
-    .role-special .floor-num {
-      color: #D4AF37;
+      background: linear-gradient(180deg, #E6C77E 0%, #D1AB56 100%);
+      color: #4A3208;
+      border: 0.5px solid #B88E39;
     }
     .floor-body {
       padding-left: 0;
     }
     .floor-quote {
-      padding: 2px 7px;
-      margin-bottom: 3.5px;
-      font-size: 12.5px;
-      font-weight: 500;
-      color: #94A3B8;
-      background: rgba(255, 255, 255, 0.03);
-      border-left: 2px solid rgba(212, 175, 55, 0.55);
+      padding: 2px 6px;
+      margin-bottom: 3px;
+      font-size: 12px;
+      color: #5C626B;
+      background: rgba(220, 214, 200, 0.38);
+      border-left: 2px solid #C3923E;
     }
     .floor-p {
       font-size: ${fontSize}px;
       font-weight: 450;
-      -webkit-text-stroke: 0.1px currentColor;
       line-height: ${lineHeight};
-      color: #E2ECE8;
+      color: #23262C;
       margin-bottom: 2.5px;
-      letter-spacing: 0.15px;
+      letter-spacing: 0.1px;
       word-break: break-word;
     }
     .floor-p:last-child {
       margin-bottom: 0;
     }
-    .role-op .floor-p,
-    .role-special .floor-p {
-      color: #F8FAFC;
-    }
     .marker-highlight {
-      color: #FDE68A;
-      background: rgba(212, 175, 55, 0.14);
+      background: rgba(230, 198, 120, 0.35);
+      color: #3B2806;
       padding: 0 1px;
       border-radius: 2px;
       font-weight: 600;
     }
     .inline-code {
-      font-family: "SF Mono", "Menlo", monospace;
-      font-size: ${Math.round((fontSize - 1) * 10) / 10}px;
-      background: rgba(212, 175, 55, 0.15);
-      color: #F3C65F;
+      font-size: ${Math.round((fontSize - 0.8) * 10) / 10}px;
+      background: rgba(46, 88, 64, 0.1);
+      color: #1E4631;
       border-radius: 2px;
-      padding: 0 4px;
-      font-weight: 600;
+      padding: 0 3px;
+      font-weight: 650;
     }
     .mention {
-      color: #F87171;
+      color: #9B2C2C;
       font-weight: 700;
     }
     .system-notice {
-      position: relative;
-      padding: 5px 10px;
+      padding: 6px 10px;
       text-align: center;
       font-size: 11px;
       font-weight: 700;
-      color: #F3C65F;
-      background: rgba(11, 28, 21, 0.88);
-      border: 1px solid rgba(212, 175, 55, 0.42);
-      border-radius: 3px;
+      color: #4A3208;
+      background: #F4E8C6;
+      border: 1px solid #C69B4B;
+      border-radius: 2px;
     }
     .ending-archive-card {
       margin-top: 6px;
-      position: relative;
       padding: 6px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(11, 26, 20, 0.85);
-      border: 1px solid rgba(212, 175, 55, 0.22);
-      border-left: 2.5px solid #D4AF37;
-      border-radius: 3px;
-    }
-    .ending-left {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .ending-title {
-      font-size: 11.5px;
-      font-weight: 800;
-      color: #F3C65F;
-    }
-    .ending-stats {
-      font-size: 10px;
-      font-weight: 500;
-      color: #8FA89E;
-    }
-    .ending-stamp {
-      background: rgba(153, 27, 27, 0.28);
-      border: 1px solid rgba(239, 68, 68, 0.55);
-      color: #FECACA;
-      font-size: 9.5px;
-      font-weight: 800;
-      padding: 2px 6px;
+      background: #1E2738;
+      color: #E2C481;
+      border-left: 3px solid #C69B4B;
       border-radius: 2px;
     }
+    .ending-title { font-size: 11px; font-weight: 800; color: #E2C481; }
+    .ending-stats { font-size: 9.5px; color: #A0AEC0; }
+    .ending-stamp { background: #9B2C2C; color: #FFF; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 2px; }
+    /* 底部栏与右下角卡塞尔圆形校徽小标 */
     .sketch-footer {
-      height: 15px;
-      margin-top: 4px;
+      height: 18px;
+      margin-top: 5px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 9.5px;
       font-weight: 600;
-      color: #64748B;
+      color: #7B766D;
       padding: 0 2px;
       flex-shrink: 0;
       position: relative;
@@ -628,205 +463,89 @@ function buildDragonForumCSS(theme, fontSize = 15.5, lineHeight = 1.45, cardGap 
       flex: 1;
       margin: 0 8px;
       height: 1px;
-      background: rgba(212, 175, 55, 0.14);
+      background: #DDD6C7;
     }
-    /* ==================== 《龙族》卡塞尔守夜人讨论区专属封面 (00-封面.png) ==================== */
+    .footer-corner-crest {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-left: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+    /* ==================== 封面（图1 + 卡塞尔学院官方圆形校徽） ==================== */
     #card-cover {
       width: 375px;
       height: 500px;
-      background-color: #07110D;
-      background-image:
-        radial-gradient(circle at 50% 32%, rgba(16, 185, 129, 0.12) 0%, rgba(212, 175, 55, 0.06) 42%, transparent 72%);
-      padding: 16px;
-      border-top: none;
-      display: flex;
-    }
-    .dragon-cover-outer-frame {
-      flex: 1;
-      border: 1.5px solid #D4AF37;
+      padding: 0;
+      background: #0D131F;
       position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 26px 18px 22px 18px;
-      background-color: rgba(7, 17, 13, 0.92);
+      overflow: hidden;
     }
-    .dragon-cover-outer-frame::before {
-      content: "";
-      position: absolute;
-      inset: 5px;
-      border: 0.5px solid rgba(212, 175, 55, 0.38);
-      pointer-events: none;
-    }
-    .dragon-cover-corner {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-color: #F3C65F;
-      pointer-events: none;
-    }
-    .dragon-cover-top-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .dragon-cover-top-meta {
-      font-family: "DIN Alternate", "SF Mono", monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.8px;
-      color: #D4AF37;
-    }
-    .dragon-cover-top-sub {
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      color: #34D399;
-      margin-top: -4px;
-    }
-    .dragon-cover-center-hero {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 14px;
-      margin: auto 0;
-    }
-    .dragon-cover-topic-pill {
-      background: linear-gradient(90deg, #7F1D1D 0%, #991B1B 50%, #7F1D1D 100%);
-      border: 1px solid #EF4444;
-      color: #FEF2F2;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 3px 11px;
-      letter-spacing: 1px;
-      border-radius: 2px;
-    }
-    .dragon-cover-main-title {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .dragon-cover-title-line-1 {
-      font-size: 31px;
-      font-weight: 900;
-      color: #FFFFFF;
-      line-height: 1.25;
-      letter-spacing: 0.8px;
-      white-space: nowrap;
-    }
-    .dragon-cover-title-line-2 {
-      font-size: 38px;
-      font-weight: 900;
-      color: #F3C65F;
-      line-height: 1.25;
-      letter-spacing: 1px;
-      white-space: nowrap;
-    }
-    .dragon-cover-divider-line {
-      width: 56px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #D4AF37, transparent);
-      margin: 2px 0;
-    }
-    .dragon-cover-sub-text {
-      font-size: 12.5px;
-      font-weight: 500;
-      color: #94A3B8;
-      line-height: 1.6;
-      max-width: 278px;
-    }
-    .dragon-cover-bottom-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 13px;
-      border-top: 1px solid rgba(212, 175, 55, 0.28);
-      font-size: 11px;
-      font-weight: 600;
-      color: #8FA89E;
-    }
-    .dragon-cover-footer-tag {
-      color: #F3C65F;
-      font-family: "DIN Alternate", "SF Mono", monospace;
-      letter-spacing: 0.8px;
+    .dragon-cover-full-img {
+      width: 375px;
+      height: 500px;
+      object-fit: cover;
+      display: block;
     }
   `;
 }
 
-function getDragonCoverSubText(parsed, cleanTitle = '') {
-  if (cleanTitle.includes('矿工')) {
-    return '“咱不能拿业余的爱好，去挑战人家让人腿软的本职工作。”';
-  }
-  for (const f of parsed.floors) {
-    for (const p of f.paragraphs) {
-      const m = p.match(/「([^」]{12,42})」/);
-      if (m) return `“${m[1]}”`;
-    }
-  }
-  return '“守夜人讨论区年度红色置顶热帖 · 诺玛主控终端全量归档。”';
-}
-
-function renderDragonCoverCardHTML(parsed, titleTag, cleanTitle) {
-  const opFloor = parsed.floors.find((f) => f.isOP) || parsed.floors[0];
-  const { line1, line2, size1, size2 } = splitDragonCoverTitle(cleanTitle);
-  const subText = getDragonCoverSubText(parsed, cleanTitle);
-
+function renderDragonHeroHTML(titleTag, cleanTitle) {
+  const fullTitle = titleTag && titleTag !== '树洞' ? `【${titleTag}】${cleanTitle}` : cleanTitle;
   return `
-    <div class="xhs-card" id="card-cover">
-      <div class="dragon-cover-outer-frame">
-        <div class="dragon-cover-top-header">
-          ${getYggdrasilCrestSVG(82, false)}
-          <div class="dragon-cover-top-meta">CASSELL COLLEGE · 守夜人讨论区</div>
-          <div class="dragon-cover-top-sub">NIGHT WATCHER FORUM // NORMA SYSTEM</div>
-        </div>
-
-        <div class="dragon-cover-center-hero">
-          <div class="dragon-cover-topic-pill">🔥 #${formatInlineMarkdown(titleTag)} · 灌水版红色置顶</div>
-          <div class="dragon-cover-main-title">
-            <div class="dragon-cover-title-line-1" style="font-size: ${size1}px;">${formatInlineMarkdown(line1)}</div>
-            <div class="dragon-cover-title-line-2" style="font-size: ${size2}px;">${formatInlineMarkdown(line2)}</div>
-          </div>
-          <div class="dragon-cover-divider-line"></div>
-          <div class="dragon-cover-sub-text">${formatInlineMarkdown(subText)}</div>
-        </div>
-
-        <div class="dragon-cover-bottom-footer">
-          <span>楼主：${formatInlineMarkdown(opFloor.author)}</span>
-          <span class="dragon-cover-footer-tag">${parsed.floors.length - 1} REPLIES &gt;&gt;&gt;</span>
-        </div>
+    <div class="hero-memo-card" id="m-hero">
+      <div class="dragon-forum-banner">
+        <div class="dragon-forum-name">守夜人论坛</div>
+        <div class="dragon-forum-sub">校园生活 / 投票专区</div>
+      </div>
+      <div class="dragon-post-title-wrap">
+        <div class="dragon-post-title">${formatInlineMarkdown(fullTitle)}</div>
+        <svg class="dragon-red-underline" viewBox="0 0 240 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4.2C58 1.8 142 1.5 238 3.6" stroke="#C84B4B" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M12 5.2C75 3.2 155 3.0 218 4.6" stroke="#C84B4B" stroke-opacity="0.55" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
       </div>
     </div>
   `;
 }
 
+function renderDragonCoverCardHTML() {
+  const coverURI = getAssetDataURI('dragon-cover-with-crest.jpg');
+  return `
+    <div class="xhs-card" id="card-cover">
+      <img src="${coverURI}" class="dragon-cover-full-img" alt="cover" />
+    </div>
+  `;
+}
+
 function getDragonPageMeta(parsed) {
+  const crestURI = getAssetDataURI('cassell-official-crest.png');
   return {
-    topbarLeftHTML: `${getYggdrasilCrestSVG(15, false)}<span class="cassell-badge-pill">CASSELL</span><span>${formatInlineMarkdown(parsed.boardName)}</span>`,
-    footerLeftText: '🌳 NIGHT WATCHER · 卡塞尔守夜人讨论区',
-    footerNextText: 'NEXT >>>',
-    footerEndText: '[ LOCKED BY WATCHER ]',
-    endingTitleText: '🌳 守夜人讨论区 · 灌水版传奇热帖归档',
-    endingStatsText: `共 ${parsed.floors.length - 1} 条回帖 · 诺玛系统校验通过`,
+    topbarLeftHTML: `<img src="${crestURI}" class="nav-crest-img" alt="crest" /><span>${formatInlineMarkdown(parsed.boardName)}</span>`,
+    footerLeftText: '守夜人讨论区 · 灌水版',
+    footerNextText: `NEXT >>> <img src="${crestURI}" class="footer-corner-crest" alt="crest" />`,
+    footerEndText: `[ LOCKED ] <img src="${crestURI}" class="footer-corner-crest" alt="crest" />`,
+    endingTitleText: '守夜人讨论区 · 灌水版热帖归档',
+    endingStatsText: `共 ${parsed.floors.length - 1} 条回帖 · EVA 校验通过`,
     endingStampText: '守夜人锁定',
-    pageBgWatermarkHTML: getDragonPageBgWatermarkHTML(),
-    heroWatermarkHTML: `<div class="dragon-watermark"></div>`,
+    pageBgWatermarkHTML: '',
+    heroWatermarkHTML: '',
   };
 }
 
 module.exports = {
   categoryId: 'dragon',
-  categoryName: '龙族（卡塞尔学院·守夜人讨论区暗金墨绿终端风）',
+  categoryName: '龙族（卡塞尔学院官方校徽封面 + 便签拼贴内页）',
   DRAGON_THEME,
+  DRAGON_PRESET_THEMES,
   SPECIAL_DRAGON_AUTHORS,
   isDragonContent,
   isSpecialDragonAuthor,
-  getYggdrasilCrestSVG,
-  getDragonPageBgWatermarkHTML,
-  getAvatarSVG: getDragonAvatarSVG,
+  getAvatarSVG: getDragonAvatarHTML,
   getBadgeHTML: getDragonBadgeHTML,
+  renderFloorSliceHTML: renderDragonFloorSliceHTML,
+  renderHeroHTML: renderDragonHeroHTML,
   buildCSS: buildDragonForumCSS,
   renderCoverCardHTML: renderDragonCoverCardHTML,
   getPageMeta: getDragonPageMeta,
