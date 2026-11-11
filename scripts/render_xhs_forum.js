@@ -698,7 +698,7 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
   let gitPushStatus = 'skipped';
   if ((options.push || !isPartialRender) && !options.noPush && fs.existsSync(path.join(defaultRepoRoot, '.git'))) {
     try {
-      execSync(`git -C "${defaultRepoRoot}" add "${novelName}"`, { stdio: 'pipe' });
+      execSync(`git -C "${defaultRepoRoot}" add --sparse "${novelName}"`, { stdio: 'pipe' });
       const statusOut = execSync(`git -C "${defaultRepoRoot}" status --porcelain "${novelName}"`, { encoding: 'utf8' }).trim();
       if (statusOut) {
         execSync(`git -C "${defaultRepoRoot}" commit -m "feat(${novelName}): update Xiaohongshu forum images (${totalPages} pages)"`, { stdio: 'pipe' });
