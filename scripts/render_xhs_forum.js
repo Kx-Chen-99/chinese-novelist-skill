@@ -464,7 +464,7 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
   }
 
   const srcNovelDir = path.dirname(absMdPath);
-  const outDir = customOutDir ? path.resolve(customOutDir) : srcNovelDir;
+  const outDir = customOutDir ? path.resolve(customOutDir) : path.join(srcNovelDir, '小红书图片');
   fs.mkdirSync(outDir, { recursive: true });
 
   let titleTag = '树洞';
