@@ -73,24 +73,28 @@ function getAssetDataURI(fileName) {
   return '';
 }
 
-function getDragonAvatarHTML(floor) {
+function getDragonAvatarClass(floor) {
   const author = floor.author || '';
-  let file = 'avatar-student.png';
-
-  if (floor.isOP || author.includes('新闻部') || author.includes('芬格尔') || author.includes('守夜人') || author.includes('曼施坦因') || author.includes('EVA')) {
-    file = 'avatar-op.png';
-  } else if (floor.isAnon || author.includes('匿名')) {
-    file = 'avatar-anon.png';
-  } else if (author.includes('诺顿馆') || author.includes('狄克推多') || author.includes('恺撒') || author.includes('圣殿')) {
-    file = 'avatar-union.png';
-  } else if (author.includes('狮心会') || author.includes('村雨') || author.includes('楚子航') || author.includes('装备部')) {
-    file = 'avatar-lion.png';
-  } else {
-    file = 'avatar-student.png';
+  if (
+    floor.isOP ||
+    author.includes('新闻部') ||
+    author.includes('芬格尔') ||
+    author.includes('守夜人') ||
+    author.includes('曼施坦因') ||
+    author.includes('EVA')
+  ) {
+    return 'av-op';
   }
-
-  const uri = getAssetDataURI(file);
-  return `<img src="${uri}" class="dragon-avatar-img" alt="avatar" />`;
+  if (floor.isAnon || author.includes('匿名')) {
+    return 'av-anon';
+  }
+  if (author.includes('诺顿馆') || author.includes('狄克推多') || author.includes('恺撒') || author.includes('圣殿')) {
+    return 'av-union';
+  }
+  if (author.includes('狮心会') || author.includes('村雨') || author.includes('楚子航') || author.includes('装备部')) {
+    return 'av-lion';
+  }
+  return 'av-student';
 }
 
 function getDragonBadgeHTML(floor) {
@@ -120,7 +124,7 @@ function getDragonBadgeHTML(floor) {
  */
 function renderDragonFloorSliceHTML(floor, slice) {
   const { roleClass, badgeHTML } = getDragonBadgeHTML(floor);
-  const avatarHTML = getDragonAvatarHTML(floor);
+  const avClass = getDragonAvatarClass(floor);
 
   let cleanAuthor = floor.author || '';
   if (cleanAuthor.includes('（管理员）') || cleanAuthor.includes('（教授）') || cleanAuthor.includes('（系统终端）')) {
@@ -141,7 +145,7 @@ function renderDragonFloorSliceHTML(floor, slice) {
     <div class="floor-item ${roleClass}" data-slice-id="${slice.sliceId || ''}">
       <div class="floor-tape"></div>
       <div class="floor-row">
-        <div class="avatar">${avatarHTML}</div>
+        <div class="avatar ${avClass}"></div>
         <div class="floor-main">
           <div class="floor-header">
             <span class="floor-num">${floorLabel}</span>
@@ -159,6 +163,13 @@ function renderDragonFloorSliceHTML(floor, slice) {
 }
 
 function buildDragonForumCSS(theme, fontSize = 14.5, lineHeight = 1.42, cardGap = 8) {
+  const crestNavURI = getAssetDataURI('cassell-crest-nav.png') || getAssetDataURI('cassell-official-crest.png');
+  const avOpURI = getAssetDataURI('avatar-op.png');
+  const avStudentURI = getAssetDataURI('avatar-student.png');
+  const avAnonURI = getAssetDataURI('avatar-anon.png');
+  const avUnionURI = getAssetDataURI('avatar-union.png');
+  const avLionURI = getAssetDataURI('avatar-lion.png');
+
   return `
     * {
       box-sizing: border-box;
@@ -213,10 +224,13 @@ function buildDragonForumCSS(theme, fontSize = 14.5, lineHeight = 1.42, cardGap 
       white-space: nowrap;
     }
     .nav-crest-img {
+      display: inline-block;
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      object-fit: cover;
+      background-image: url("${crestNavURI}");
+      background-size: cover;
+      background-position: center;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
       flex-shrink: 0;
     }
@@ -331,14 +345,15 @@ function buildDragonForumCSS(theme, fontSize = 14.5, lineHeight = 1.42, cardGap 
       margin-top: 1px;
       border-radius: 2px;
       overflow: hidden;
+      background-size: cover;
+      background-position: center;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     }
-    .dragon-avatar-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
+    .avatar.av-op { background-image: url("${avOpURI}"); }
+    .avatar.av-student { background-image: url("${avStudentURI}"); }
+    .avatar.av-anon { background-image: url("${avAnonURI}"); }
+    .avatar.av-union { background-image: url("${avUnionURI}"); }
+    .avatar.av-lion { background-image: url("${avLionURI}"); }
     .floor-main {
       flex: 1;
       min-width: 0;
@@ -466,10 +481,14 @@ function buildDragonForumCSS(theme, fontSize = 14.5, lineHeight = 1.42, cardGap 
       background: #DDD6C7;
     }
     .footer-corner-crest {
-      width: 20px;
-      height: 20px;
+      display: inline-block;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      vertical-align: middle;
+      background-image: url("${crestNavURI}");
+      background-size: cover;
+      background-position: center;
+      vertical-align: -4px;
       margin-left: 4px;
       box-shadow: 0 1px 2px rgba(0,0,0,0.25);
     }
@@ -520,12 +539,11 @@ function renderDragonCoverCardHTML() {
 }
 
 function getDragonPageMeta(parsed) {
-  const crestURI = getAssetDataURI('cassell-official-crest.png');
   return {
-    topbarLeftHTML: `<img src="${crestURI}" class="nav-crest-img" alt="crest" /><span>${formatInlineMarkdown(parsed.boardName)}</span>`,
+    topbarLeftHTML: `<span class="nav-crest-img"></span><span>${formatInlineMarkdown(parsed.boardName)}</span>`,
     footerLeftText: '守夜人讨论区 · 灌水版',
-    footerNextText: `NEXT >>> <img src="${crestURI}" class="footer-corner-crest" alt="crest" />`,
-    footerEndText: `[ LOCKED ] <img src="${crestURI}" class="footer-corner-crest" alt="crest" />`,
+    footerNextText: `NEXT >>> <span class="footer-corner-crest"></span>`,
+    footerEndText: `[ LOCKED ] <span class="footer-corner-crest"></span>`,
     endingTitleText: '守夜人讨论区 · 灌水版热帖归档',
     endingStatsText: `共 ${parsed.floors.length - 1} 条回帖 · EVA 校验通过`,
     endingStampText: '守夜人锁定',
@@ -542,7 +560,7 @@ module.exports = {
   SPECIAL_DRAGON_AUTHORS,
   isDragonContent,
   isSpecialDragonAuthor,
-  getAvatarSVG: getDragonAvatarHTML,
+  getAvatarSVG: getDragonAvatarClass,
   getBadgeHTML: getDragonBadgeHTML,
   renderFloorSliceHTML: renderDragonFloorSliceHTML,
   renderHeroHTML: renderDragonHeroHTML,
