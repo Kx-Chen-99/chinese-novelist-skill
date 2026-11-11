@@ -7,7 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { formatInlineMarkdown } = require('./common');
+const { formatInlineMarkdown, renderParagraphOrListHTML } = require('./common');
 
 const DRAGON_THEME = {
   category: 'dragon',
@@ -136,7 +136,7 @@ function renderDragonFloorSliceHTML(floor, slice) {
     .join('');
 
   const paragraphsHTML = (slice.paragraphs || [])
-    .map((p, pIdx) => `<p class="floor-p" data-p-idx="${pIdx}">${formatInlineMarkdown(p, false)}</p>`)
+    .map((p, pIdx) => renderParagraphOrListHTML(p, pIdx, false))
     .join('');
 
   const floorLabel = slice.isCont ? `${floor.floorNum} (续)` : floor.floorNum;
@@ -409,12 +409,64 @@ function buildDragonForumCSS(theme, fontSize = 14.5, lineHeight = 1.42, cardGap 
       font-weight: 450;
       line-height: ${lineHeight};
       color: #23262C;
-      margin-bottom: 2.5px;
+      margin-bottom: 4px;
       letter-spacing: 0.1px;
       word-break: break-word;
     }
+    .floor-p.para-gap {
+      margin-bottom: 13px;
+    }
     .floor-p:last-child {
       margin-bottom: 0;
+    }
+    .floor-p.floor-li {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 4px;
+      padding-left: 2px;
+    }
+    .floor-p.floor-li.para-gap {
+      margin-bottom: 11px;
+    }
+    .floor-p.floor-li-sub {
+      padding-left: 14px;
+      margin-bottom: 3.5px;
+    }
+    .floor-p.floor-li-sub.para-gap {
+      margin-bottom: 11px;
+    }
+    .li-bullet {
+      width: 5.5px;
+      height: 5.5px;
+      border-radius: 50%;
+      background-color: #C3923E;
+      flex-shrink: 0;
+      transform: translateY(-2px);
+    }
+    .li-bullet-sub {
+      width: 4.5px;
+      height: 4.5px;
+      border-radius: 1px;
+      background-color: transparent;
+      border: 1.3px solid #8C7A5B;
+      transform: translateY(-2px) rotate(45deg);
+    }
+    .li-num {
+      font-weight: 850;
+      color: #B5832E;
+      flex-shrink: 0;
+      min-width: 15px;
+    }
+    .li-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .md-link {
+      color: #2E5840;
+      font-weight: 750;
+      text-decoration: underline;
+      text-underline-offset: 2px;
     }
     .marker-highlight {
       background: rgba(230, 198, 120, 0.35);

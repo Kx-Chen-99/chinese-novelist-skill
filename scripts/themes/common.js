@@ -1,6 +1,6 @@
 /**
  * 论坛体图片渲染公共辅助工具
- * 供各品类主题模块 (themes/oc.js, themes/glory.js 等) 与主引擎共同调用
+ * 供各品类主题模块 (themes/oc.js, themes/glory.js, themes/dragon.js) 与主引擎共同调用
  */
 
 function formatInlineMarkdown(text, isSpecialCard = false) {
@@ -11,6 +11,8 @@ function formatInlineMarkdown(text, isSpecialCard = false) {
 
   escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   escaped = escaped.replace(/`(.+?)`/g, '<span class="inline-code">$1</span>');
+  escaped = escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<span class="md-link">$1</span>');
+  escaped = escaped.replace(/\[(点击跳转|点击查看|查看详情)\]/g, '<span class="md-link">[$1]</span>');
   escaped = escaped.replace(/@([^\s，。！？、：；]+)/g, '<span class="mention">@$1</span>');
 
   if (!isSpecialCard) {
@@ -18,6 +20,40 @@ function formatInlineMarkdown(text, isSpecialCard = false) {
   }
 
   return escaped;
+}
+
+/**
+ * 将单条段落或 Markdown 列表项（- /   - / 1. ）渲染为结构化 HTML
+ * 若原始段落末尾带有 [[PARA_GAP]] 标记（表示 Markdown 中有空行分段），自动附加 para-gap 类名以拉开段落间距
+ */
+function renderParagraphOrListHTML(p, pIdx, isSpecialCard = false) {
+  let raw = String(p || '');
+  let hasParaGap = false;
+  if (raw.endsWith('[[PARA_GAP]]')) {
+    hasParaGap = true;
+    raw = raw.slice(0, -'[[PARA_GAP]]'.length);
+  }
+  const gapClass = hasParaGap ? ' para-gap' : '';
+
+  // 二级缩进无序列表（如 "  - **A组**：..."）
+  const subBulletMatch = raw.match(/^\s{2,}[-*•]\s+(.+)$/);
+  if (subBulletMatch) {
+    return `<div class="floor-p floor-li floor-li-sub${gapClass}" data-p-idx="${pIdx}"><span class="li-bullet li-bullet-sub"></span><span class="li-text">${formatInlineMarkdown(subBulletMatch[1].trim(), isSpecialCard)}</span></div>`;
+  }
+
+  // 一级无序列表（如 "- **上半区**：" 或 "- 投票前台完全匿名..."）
+  const bulletMatch = raw.match(/^\s*[-*•]\s+(.+)$/);
+  if (bulletMatch) {
+    return `<div class="floor-p floor-li${gapClass}" data-p-idx="${pIdx}"><span class="li-bullet"></span><span class="li-text">${formatInlineMarkdown(bulletMatch[1].trim(), isSpecialCard)}</span></div>`;
+  }
+
+  // 有序列表（如 "1. **榜单定义**："）
+  const numMatch = raw.match(/^\s*(\d+)\.\s+(.+)$/);
+  if (numMatch) {
+    return `<div class="floor-p floor-li floor-li-num${gapClass}" data-p-idx="${pIdx}"><span class="li-num">${numMatch[1]}.</span><span class="li-text">${formatInlineMarkdown(numMatch[2].trim(), isSpecialCard)}</span></div>`;
+  }
+
+  return `<p class="floor-p${gapClass}" data-p-idx="${pIdx}">${formatInlineMarkdown(raw.trim(), isSpecialCard)}</p>`;
 }
 
 /**
@@ -53,5 +89,6 @@ function splitCoverTitleLines(cleanTitle) {
 
 module.exports = {
   formatInlineMarkdown,
+  renderParagraphOrListHTML,
   splitCoverTitleLines,
 };

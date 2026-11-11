@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { formatInlineMarkdown } = require('./themes/common');
+const { formatInlineMarkdown, renderParagraphOrListHTML } = require('./themes/common');
 const { PRESET_THEMES, ocModule, gloryModule, dragonModule, resolveThemeAndCategory } = require('./themes');
 
 function loadPlaywright() {
@@ -61,8 +61,19 @@ function parseForumMarkdown(mdContent) {
     let currentFloor = null;
 
     for (let i = 0; i < blockLines.length; i++) {
-      const trimmed = blockLines[i].trim();
-      if (!trimmed || trimmed.startsWith('<!--')) continue;
+      const rawLine = blockLines[i];
+      const leadingSpaces = (rawLine.match(/^(\s*)/)[1] || '').replace(/\t/g, '  ').length;
+      const trimmed = rawLine.trim();
+      if (!trimmed) {
+        if (currentFloor && currentFloor.paragraphs.length > 0) {
+          const lastIdx = currentFloor.paragraphs.length - 1;
+          if (!currentFloor.paragraphs[lastIdx].endsWith('[[PARA_GAP]]')) {
+            currentFloor.paragraphs[lastIdx] += '[[PARA_GAP]]';
+          }
+        }
+        continue;
+      }
+      if (trimmed.startsWith('<!--')) continue;
 
       const sysMatch =
         trimmed.match(/^>\s*\*\*【(.*?)】\*\*$/) ||
@@ -127,7 +138,13 @@ function parseForumMarkdown(mdContent) {
         if (quoteText) currentFloor.quotes.push(quoteText);
         continue;
       }
-      currentFloor.paragraphs.push(trimmed);
+      const prevPara = (currentFloor.paragraphs[currentFloor.paragraphs.length - 1] || '').replace(/\[\[PARA_GAP\]\]$/, '');
+      const isParentList = /^\s*(?:\d+\.|[-*•])\s+.*[：:]$/.test(prevPara) || /^\s{2,}[-*•]\s+/.test(prevPara);
+      if (/^[-*•]\s+/.test(trimmed) && (leadingSpaces >= 2 || (isParentList && leadingSpaces >= 1))) {
+        currentFloor.paragraphs.push('  ' + trimmed);
+      } else {
+        currentFloor.paragraphs.push(trimmed);
+      }
     }
   }
 
@@ -188,23 +205,6 @@ function parseForumMarkdown(mdContent) {
       }
       f.paragraphs = transformed;
     }
-
-    if (!f.isOP && f.paragraphs.length > 1) {
-      const merged = [];
-      for (const p of f.paragraphs) {
-        if (
-          merged.length > 0 &&
-          !p.startsWith('[[POSTER:') &&
-          !merged[merged.length - 1].startsWith('[[POSTER:') &&
-          merged[merged.length - 1].length + p.length <= 46
-        ) {
-          merged[merged.length - 1] += ' ' + p;
-        } else {
-          merged.push(p);
-        }
-      }
-      f.paragraphs = merged;
-    }
   }
 
   return { boardName, title: title || '匿名树洞求助帖', floors, systemNotices, isGloryForum };
@@ -227,7 +227,7 @@ function renderFloorSliceHTML(floor, slice, theme, handler) {
       if (posterMatch && handler.renderGloryPosterHTML) {
         return handler.renderGloryPosterHTML(posterMatch[1], pIdx);
       }
-      return `<p class="floor-p" data-p-idx="${pIdx}">${formatInlineMarkdown(p, floor.isSpecialUser)}</p>`;
+      return renderParagraphOrListHTML(p, pIdx, floor.isSpecialUser);
     })
     .join('');
 

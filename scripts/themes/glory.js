@@ -734,12 +734,49 @@ function buildGloryEsportsCSS(theme, fontSize = 15.5, lineHeight = 1.45, cardGap
       -webkit-text-stroke: 0.1px currentColor;
       line-height: ${lineHeight};
       color: #E2E8F0;
-      margin-bottom: 2.5px;
+      margin-bottom: 7.5px;
       letter-spacing: 0.15px;
       word-break: break-word;
     }
     .floor-p:last-child {
       margin-bottom: 0;
+    }
+    .floor-p.floor-li {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 4px;
+      padding-left: 2px;
+    }
+    .floor-p.floor-li-sub {
+      padding-left: 14px;
+      margin-bottom: 3.5px;
+    }
+    .li-bullet {
+      width: 5.5px;
+      height: 5.5px;
+      border-radius: 50%;
+      background-color: #F5C451;
+      flex-shrink: 0;
+      transform: translateY(-2px);
+    }
+    .li-bullet-sub {
+      width: 4.5px;
+      height: 4.5px;
+      border-radius: 1px;
+      background-color: transparent;
+      border: 1.2px solid #94A3B8;
+      transform: translateY(-2px) rotate(45deg);
+    }
+    .li-num {
+      font-weight: 850;
+      color: #F5C451;
+      flex-shrink: 0;
+      min-width: 15px;
+    }
+    .li-text {
+      flex: 1;
+      min-width: 0;
     }
     .role-op .floor-p,
     .role-special .floor-p {
