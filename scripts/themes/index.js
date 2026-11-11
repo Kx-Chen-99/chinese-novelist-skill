@@ -1,21 +1,27 @@
 /**
  * 论坛体主题品类注册中心 (Theme Registry)
- * - oc    : OC 原创（手绘草稿手账风 UI）
- * - glory : 《全职高手》同人（荣耀官方论坛·深空暗金电竞风 UI）
+ * - oc     : OC 原创（手绘草稿手账风 UI）
+ * - glory  : 《全职高手》同人（荣耀官方论坛·深空暗金电竞风 UI）
+ * - dragon : 《龙族》同人（卡塞尔学院·守夜人讨论区半朽世界树暗金墨绿终端风 UI）
  * 后续新增其他 IP/背景品类时，只需在此注册模块即可。
  */
 
 const ocModule = require('./oc');
 const gloryModule = require('./glory');
+const dragonModule = require('./dragon');
 
 const PRESET_THEMES = {
   ...ocModule.OC_PRESET_THEMES,
   'glory-gold': gloryModule.GLORY_THEME,
+  'cassell-forum': dragonModule.DRAGON_THEME,
 };
 
 function resolveThemeAndCategory(options = {}, mdContent = '') {
   if (options.theme === 'glory-gold') {
     return { theme: gloryModule.GLORY_THEME, handler: gloryModule };
+  }
+  if (options.theme === 'cassell-forum' || options.theme === 'dragon') {
+    return { theme: dragonModule.DRAGON_THEME, handler: dragonModule };
   }
   if (options.color) {
     const hue = ocModule.hexToHue(options.color);
@@ -48,10 +54,15 @@ function resolveThemeAndCategory(options = {}, mdContent = '') {
   }
   if (options.theme && PRESET_THEMES[options.theme]) {
     const t = PRESET_THEMES[options.theme];
-    return { theme: t, handler: t.isGloryTheme ? gloryModule : ocModule };
+    if (t.isGloryTheme) return { theme: t, handler: gloryModule };
+    if (t.isDragonTheme) return { theme: t, handler: dragonModule };
+    return { theme: t, handler: ocModule };
   }
   if (gloryModule.isGloryContent('', mdContent)) {
     return { theme: gloryModule.GLORY_THEME, handler: gloryModule };
+  }
+  if (dragonModule.isDragonContent('', mdContent)) {
+    return { theme: dragonModule.DRAGON_THEME, handler: dragonModule };
   }
   return { theme: ocModule.OC_PRESET_THEMES['warm-orange'], handler: ocModule };
 }
@@ -60,5 +71,6 @@ module.exports = {
   PRESET_THEMES,
   ocModule,
   gloryModule,
+  dragonModule,
   resolveThemeAndCategory,
 };

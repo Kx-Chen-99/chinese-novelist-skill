@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const { formatInlineMarkdown } = require('./themes/common');
-const { PRESET_THEMES, ocModule, gloryModule, resolveThemeAndCategory } = require('./themes');
+const { PRESET_THEMES, ocModule, gloryModule, dragonModule, resolveThemeAndCategory } = require('./themes');
 
 function loadPlaywright() {
   const candidates = [
@@ -52,6 +52,7 @@ function parseForumMarkdown(mdContent) {
   }
 
   const isGloryForum = gloryModule.isGloryContent(boardName, mdContent);
+  const isDragonForum = dragonModule.isDragonContent(boardName, mdContent);
   const floors = [];
   const systemNotices = [];
 
@@ -91,6 +92,9 @@ function parseForumMarkdown(mdContent) {
           isSpecialUser = !isOP && (rawAuthor.endsWith('V') || /^(轮回|呼啸|兴欣|蓝雨|微草|霸图|烟雨|百花)-/.test(rawAuthor));
           isMajia = !isOP && !isSpecialUser && gloryModule.MAJIA_AUTHORS.has(rawAuthor);
           isAnon = !isOP && !isSpecialUser;
+        } else if (isDragonForum) {
+          isSpecialUser = !isOP && dragonModule.isSpecialDragonAuthor(rawAuthor);
+          isAnon = rawAuthor === '匿名用户' || rawAuthor.startsWith('匿名');
         } else {
           isAnon = rawAuthor === '匿名用户' || rawAuthor.startsWith('匿名');
           isSpecialUser = !isOP && !isAnon;
