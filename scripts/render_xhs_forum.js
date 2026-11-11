@@ -463,10 +463,8 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
     throw new Error('未能从 Markdown 文件中解析出任何楼层（需形如 **【0L 楼主】**）。');
   }
 
-  const novelName = path.basename(absMdPath, path.extname(absMdPath));
-  const defaultRepoRoot = '/Users/bytedance/Library/Mobile Documents/iCloud~md~obsidian/Documents/职业技术/小红书论坛体图库';
-  const repoNovelDir = path.join(defaultRepoRoot, novelName);
-  const outDir = customOutDir ? path.resolve(customOutDir) : repoNovelDir;
+  const srcNovelDir = path.dirname(absMdPath);
+  const outDir = customOutDir ? path.resolve(customOutDir) : srcNovelDir;
   fs.mkdirSync(outDir, { recursive: true });
 
   let titleTag = '树洞';
@@ -676,42 +674,6 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
 
   await browser.close();
 
-  const srcNovelDir = path.dirname(absMdPath);
-  if (fs.existsSync(defaultRepoRoot)) {
-    fs.mkdirSync(repoNovelDir, { recursive: true });
-    if (path.resolve(srcNovelDir) !== path.resolve(repoNovelDir)) {
-      for (const f of fs.readdirSync(srcNovelDir)) {
-        if (f.endsWith('.md') || f.endsWith('.json')) {
-          fs.copyFileSync(path.join(srcNovelDir, f), path.join(repoNovelDir, f));
-        }
-      }
-    }
-    if (path.resolve(outDir) !== path.resolve(repoNovelDir)) {
-      for (const f of fs.readdirSync(outDir)) {
-        if (f.endsWith('.png') || f === 'preview.html') {
-          fs.copyFileSync(path.join(outDir, f), path.join(repoNovelDir, f));
-        }
-      }
-    }
-  }
-
-  let gitPushStatus = 'skipped';
-  if ((options.push || !isPartialRender) && !options.noPush && fs.existsSync(path.join(defaultRepoRoot, '.git'))) {
-    try {
-      execSync(`git -C "${defaultRepoRoot}" add --sparse "${novelName}"`, { stdio: 'pipe' });
-      const statusOut = execSync(`git -C "${defaultRepoRoot}" status --porcelain "${novelName}"`, { encoding: 'utf8' }).trim();
-      if (statusOut) {
-        execSync(`git -C "${defaultRepoRoot}" commit -m "feat(${novelName}): update Xiaohongshu forum images (${totalPages} pages)"`, { stdio: 'pipe' });
-        execSync(`git -C "${defaultRepoRoot}" push origin main`, { stdio: 'pipe' });
-        gitPushStatus = 'pushed';
-      } else {
-        gitPushStatus = 'up-to-date';
-      }
-    } catch (pushErr) {
-      gitPushStatus = `failed: ${pushErr.message}`;
-    }
-  }
-
   console.log(JSON.stringify({
     status: 'success',
     category: handler.categoryId,
@@ -719,8 +681,6 @@ async function generateXHSImages(mdFilePath, customOutDir, options = {}) {
     themeName: theme.label,
     source: absMdPath,
     outputDir: outDir,
-    repoDir: repoNovelDir,
-    gitPushStatus,
     totalPages,
     mobileFontSizePt: preset.fontSize,
     totalFloors: parsed.floors.length,

@@ -136,9 +136,9 @@ node {skillBaseDir}/scripts/check_chapter_wordcount.mjs --all ./小说/[小说�
 # 自定义最小字数与最大字数（如 12000 字爆款短篇区间 11500-12500，单文件短篇直接存放在小说名目录下）
 node {skillBaseDir}/scripts/check_chapter_wordcount.mjs ./小说/[小说名称]/[小说名称].md 11500 12500 --json
 
-# 将论坛体 Markdown 渲染为小红书 3:4 (1125x1500) 手绘草稿风高清图片（调整UI/色系时必先加 --first-only 预览1张，确认后再全量生成至 ./小红书论坛体图库/[小说名称]/ 并自动 push 到私密仓库 Kx-Chen-99/my-novels）
+# 将论坛体 Markdown 渲染为小红书 3:4 (1125x1500) 高清图片（调整UI/色系时必先加 --first-only 预览1张，确认后再全量生成至对应小说文件夹 ./小说/[小说名称]/ 下）
 node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange --first-only --with-cover
-node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange --with-cover --push
+node {skillBaseDir}/scripts/render_xhs_forum.js ./小说/[小说名称]/[小说名称].md --theme=warm-orange --with-cover
 ```
 
 ### 环境要求与降级
