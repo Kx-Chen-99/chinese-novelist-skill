@@ -25,6 +25,7 @@
      "updatedAt": "[ISO时间]",
      "status": "planning",
      "writingMode": "[serial|subagent-parallel|agent-teams|viral-short-12k|forum-style]",
+     "generateBookReview": false,
      "chapters": [
        {
          "chapterNumber": 1,
@@ -39,7 +40,7 @@
    }
    ```
 
-   `chapterNumber`、`title` 与大纲章节规划一致；写作计划记录状态、字数和重试次数，章节摘要保存到独立文件。
+   `chapterNumber`、`title` 与大纲章节规划一致；`generateBookReview` 记录用户在投稿番茄的短篇/中篇中是否选择生成 100～300 字书评（`true` / `false`，未涉及或未询问时可设为 `null`）；写作计划记录状态、字数和重试次数，章节摘要保存到独立文件。
 
    > **💬 纯正论坛体模式（`forum-style`）专属规划规则**：
    > 当创作论坛体小说时，**以能够完整清晰地描述出整个事件作为唯一评判标准，无任何字数要求或限制**：
